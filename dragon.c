@@ -33,6 +33,7 @@ char *progname;
 bool verbose = false;
 int mode = 0;
 bool and_exit;
+bool keep;
 
 #define MODE_HELP 1
 #define MODE_TARGET 2
@@ -46,6 +47,8 @@ struct draggable_thing {
     char *uri;
     guint last_time;
 };
+
+void add_target_button();
 
 void do_quit(GtkWidget *widget, gpointer data) {
     exit(0);
@@ -172,9 +175,14 @@ drag_data_received (GtkWidget          *widget,
     if (!uris && !text)
         gtk_drag_finish (context, FALSE, FALSE, time);
     if (uris) {
+        gtk_container_remove(GTK_CONTAINER(vbox), widget);
         for (; *uris; uris++) {
             printf("%s\n", *uris);
+            if (keep)
+                add_uri_button(*uris);
         }
+        add_target_button();
+        gtk_widget_show_all(window);
     } else if (text) {
         printf("%s\n", text);
     }
@@ -183,7 +191,7 @@ drag_data_received (GtkWidget          *widget,
         gtk_main_quit();
 }
 
-void target_mode() {
+void add_target_button() {
     GtkWidget *label = gtk_button_new();
     gtk_button_set_label(GTK_BUTTON(label), "Drag something here...");
     gtk_container_add(GTK_CONTAINER(vbox), label);
@@ -203,7 +211,10 @@ void target_mode() {
             G_CALLBACK(drag_drop), NULL);
     g_signal_connect(GTK_WIDGET(label), "drag-data-received",
             G_CALLBACK(drag_data_received), NULL);
+}
 
+void target_mode() {
+    add_target_button();
     gtk_widget_show_all(window);
     gtk_main();
 }
@@ -224,6 +235,9 @@ int main (int argc, char **argv) {
             mode = MODE_TARGET;
         } else if (strcmp(argv[i], "--and-exit") == 0) {
             and_exit = true;
+        } else if (strcmp(argv[i], "-k") == 0
+                || strcmp(argv[i], "--keep") == 0) {
+            keep = true;
         } else if (argv[i][0] == '-') {
             fprintf(stderr, "%s: error: unknown option `%s'.\n",
                     progname, argv[i]);
