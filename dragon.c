@@ -32,10 +32,10 @@ GtkWidget *vbox;
 char *progname;
 bool verbose = false;
 int mode = 0;
+bool and_exit;
 
 #define MODE_HELP 1
-#define MODE_LIST_CONFIGS 2
-#define MODE_BACKENDS 3
+#define MODE_TARGET 2
 #define MODE_VERSION 4
 
 #define TARGET_TYPE_TEXT 1
@@ -56,6 +56,11 @@ void button_clicked(GtkWidget *widget, gpointer user_data) {
     if (0 == fork()) {
         execlp("xdg-open", "xdg-open", dd->uri, NULL);
     }
+}
+
+void drag_end(GtkWidget *widget, GdkDragContext *context, gpointer user_data) {
+    if (and_exit)
+        gtk_main_quit();
 }
 
 void drag_data_get(GtkWidget    *widget,
@@ -99,6 +104,8 @@ void add_button(char *label, struct draggable_thing *dragdata, int type) {
             G_CALLBACK(drag_data_get), dragdata);
     g_signal_connect(GTK_WIDGET(button), "clicked",
             G_CALLBACK(button_clicked), dragdata);
+    g_signal_connect(GTK_WIDGET(button), "drag-end",
+            G_CALLBACK(drag_end), dragdata);
  
     gtk_container_add(GTK_CONTAINER(vbox), button);
 }
@@ -129,6 +136,78 @@ bool is_uri(char *uri) {
     return false;
 }
 
+gboolean drag_drop (GtkWidget *widget,
+               GdkDragContext *context,
+               gint            x,
+               gint            y,
+               guint           time,
+               gpointer        user_data) {
+    GtkTargetList *targetlist = gtk_drag_dest_get_target_list(widget);
+    GList *list = gdk_drag_context_list_targets(context);
+    if (list) {
+        while (list) {
+            GdkAtom atom = (GdkAtom)g_list_nth_data(list, 0);
+            if (gtk_target_list_find(targetlist,
+                        GDK_POINTER_TO_ATOM(g_list_nth_data(list, 0)), NULL)) {
+                gtk_drag_get_data(widget, context, atom, time);
+                return true;
+            }
+            list = g_list_next(list);
+        }
+    }
+    gtk_drag_finish(context, false, false, time);
+    return true;
+}
+
+void
+drag_data_received (GtkWidget          *widget,
+                    GdkDragContext     *context,
+                    gint                x,
+                    gint                y,
+                    GtkSelectionData   *data,
+                    guint               info,
+                    guint               time) {
+    gchar **uris = gtk_selection_data_get_uris(data);
+    unsigned char *text = gtk_selection_data_get_text(data);
+    if (!uris && !text)
+        gtk_drag_finish (context, FALSE, FALSE, time);
+    if (uris) {
+        for (; *uris; uris++) {
+            printf("%s\n", *uris);
+        }
+    } else if (text) {
+        printf("%s\n", text);
+    }
+    gtk_drag_finish (context, TRUE, FALSE, time);
+    if (and_exit)
+        gtk_main_quit();
+}
+
+void target_mode() {
+    GtkWidget *label = gtk_button_new();
+    gtk_button_set_label(GTK_BUTTON(label), "Drag something here...");
+    gtk_container_add(GTK_CONTAINER(vbox), label);
+    GtkTargetList *targetlist = gtk_drag_dest_get_target_list(GTK_WIDGET(label));
+    if (targetlist)
+        gtk_target_list_ref(targetlist);
+    else
+        targetlist = gtk_target_list_new(NULL, 0);
+    gtk_target_list_add_text_targets(targetlist, TARGET_TYPE_TEXT);
+    gtk_target_list_add_uri_targets(targetlist, TARGET_TYPE_URI);
+    gtk_drag_dest_set(GTK_WIDGET(label),
+            GTK_DEST_DEFAULT_MOTION | GTK_DEST_DEFAULT_HIGHLIGHT, NULL, 0,
+            GDK_ACTION_COPY);
+    gtk_drag_dest_set_target_list(GTK_WIDGET(label), targetlist);
+
+    g_signal_connect(GTK_WIDGET(label), "drag-drop",
+            G_CALLBACK(drag_drop), NULL);
+    g_signal_connect(GTK_WIDGET(label), "drag-data-received",
+            G_CALLBACK(drag_data_received), NULL);
+
+    gtk_widget_show_all(window);
+    gtk_main();
+}
+
 int main (int argc, char **argv) {
     progname = argv[0];
     char *filename = NULL;
@@ -141,25 +220,14 @@ int main (int argc, char **argv) {
         } else if (strcmp(argv[i], "-v") == 0
                 || strcmp(argv[i], "--verbose") == 0) {
             verbose = true;
+        } else if (strcmp(argv[i], "--target") == 0) {
+            mode = MODE_TARGET;
+        } else if (strcmp(argv[i], "--and-exit") == 0) {
+            and_exit = true;
         } else if (argv[i][0] == '-') {
             fprintf(stderr, "%s: error: unknown option `%s'.\n",
                     progname, argv[i]);
         }
-    }
-    switch(mode) {
-        case MODE_VERSION:
-            puts("dragon " VERSION);
-            puts("Copyright (C) 2014 Michael Homer");
-            puts("This program comes with ABSOLUTELY NO WARRANTY.");
-            puts("See the source for copying conditions.");
-            exit(0);
-        case MODE_HELP:
-            printf("dragon - lightweight DnD source/target\n");
-            printf("Usage: %s [OPTION] [FILENAME]\n", argv[0]);
-            printf("  --verbose, -v   be verbose\n");
-            printf("  --help          show help\n");
-            printf("  --version       show version details\n");
-            exit(0);
     }
     GtkAccelGroup *accelgroup;
     GClosure *closure;
@@ -179,6 +247,29 @@ int main (int argc, char **argv) {
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
     vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
+
+    gtk_container_add(GTK_CONTAINER(window), vbox);
+
+    gtk_window_set_title(GTK_WINDOW(window), "dragon");
+
+    switch(mode) {
+        case MODE_VERSION:
+            puts("dragon " VERSION);
+            puts("Copyright (C) 2014 Michael Homer");
+            puts("This program comes with ABSOLUTELY NO WARRANTY.");
+            puts("See the source for copying conditions.");
+            exit(0);
+        case MODE_HELP:
+            printf("dragon - lightweight DnD source/target\n");
+            printf("Usage: %s [OPTION] [FILENAME]\n", argv[0]);
+            printf("  --verbose, -v   be verbose\n");
+            printf("  --help          show help\n");
+            printf("  --version       show version details\n");
+            exit(0);
+        case MODE_TARGET:
+            target_mode();
+            exit(0);
+    }
 
     bool had_filename = false;
     for (int i=1; i<argc; i++) {
@@ -202,10 +293,6 @@ int main (int argc, char **argv) {
         printf("Usage: %s [OPTIONS] FILENAME\n", progname);
         exit(0);
     }
- 
-    gtk_container_add(GTK_CONTAINER(window), vbox);
-
-    gtk_window_set_title(GTK_WINDOW(window), "dragon");
  
     gtk_widget_show_all(window);
  
