@@ -231,9 +231,11 @@ int main (int argc, char **argv) {
         } else if (strcmp(argv[i], "-v") == 0
                 || strcmp(argv[i], "--verbose") == 0) {
             verbose = true;
-        } else if (strcmp(argv[i], "--target") == 0) {
+        } else if (strcmp(argv[i], "-t") == 0
+                || strcmp(argv[i], "--target") == 0) {
             mode = MODE_TARGET;
-        } else if (strcmp(argv[i], "--and-exit") == 0) {
+        } else if (strcmp(argv[i], "-x") == 0
+                || strcmp(argv[i], "--and-exit") == 0) {
             and_exit = true;
         } else if (strcmp(argv[i], "-k") == 0
                 || strcmp(argv[i], "--keep") == 0) {
