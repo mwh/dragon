@@ -278,7 +278,10 @@ int main (int argc, char **argv) {
         case MODE_HELP:
             printf("dragon - lightweight DnD source/target\n");
             printf("Usage: %s [OPTION] [FILENAME]\n", argv[0]);
-            printf("  --verbose, -v   be verbose\n");
+            printf("  --and-exit, -x  exit after a single completed drop\n");
+            printf("  --target,   -t  act as a target instead of source\n");
+            printf("  --keep,     -k  with --target, keep files to drag out\n");
+            printf("  --verbose,  -v  be verbose\n");
             printf("  --help          show help\n");
             printf("  --version       show version details\n");
             exit(0);
