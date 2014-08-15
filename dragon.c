@@ -18,6 +18,7 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 #include <gdk/gdkkeysyms.h>
+#include <gio/gio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -28,6 +29,7 @@
 
 GtkWidget *window;
 GtkWidget *vbox;
+GtkIconTheme *icon_theme;
 
 char *progname;
 bool verbose = false;
@@ -88,7 +90,7 @@ void drag_data_get(GtkWidget    *widget,
     }
 }
 
-void add_button(char *label, struct draggable_thing *dragdata, int type) {
+GtkButton *add_button(char *label, struct draggable_thing *dragdata, int type) {
     GtkWidget *button = gtk_button_new();
     gtk_button_set_label(GTK_BUTTON(button), label);
     GtkTargetList *targetlist = gtk_drag_source_get_target_list(GTK_WIDGET(button));
@@ -111,6 +113,7 @@ void add_button(char *label, struct draggable_thing *dragdata, int type) {
             G_CALLBACK(drag_end), dragdata);
  
     gtk_container_add(GTK_CONTAINER(vbox), button);
+    return (GtkButton *)button;
 }
 
 void add_file_button(char *ufilename, char *filename) {
@@ -120,7 +123,19 @@ void add_file_button(char *ufilename, char *filename) {
     struct draggable_thing *dragdata = malloc(sizeof(struct draggable_thing));
     dragdata->text = filename;
     dragdata->uri = uri;
-    add_button(ufilename, dragdata, TARGET_TYPE_URI);
+    GtkButton *button = add_button(ufilename, dragdata, TARGET_TYPE_URI);
+    GFile *file = g_file_new_for_path(filename);
+    GFileInfo *fileinfo = g_file_query_info(file, "*", 0, NULL, NULL);
+    GIcon *icon = g_file_info_get_icon(fileinfo);
+    GtkIconInfo *icon_info = gtk_icon_theme_lookup_by_gicon(icon_theme,
+            icon, 48, GTK_ICON_LOOKUP_GENERIC_FALLBACK);
+    gtk_button_set_image(button,
+            gtk_image_new_from_pixbuf(
+                gtk_icon_info_load_icon(icon_info, NULL)
+                ));
+    gtk_button_set_alignment(button, 0, 0);
+    gtk_button_set_always_show_image(button, true);
+
 }
 
 void add_uri_button(char *uri) {
@@ -206,7 +221,6 @@ void add_target_button() {
             GTK_DEST_DEFAULT_MOTION | GTK_DEST_DEFAULT_HIGHLIGHT, NULL, 0,
             GDK_ACTION_COPY);
     gtk_drag_dest_set_target_list(GTK_WIDGET(label), targetlist);
-
     g_signal_connect(GTK_WIDGET(label), "drag-drop",
             G_CALLBACK(drag_drop), NULL);
     g_signal_connect(GTK_WIDGET(label), "drag-data-received",
@@ -250,6 +264,8 @@ int main (int argc, char **argv) {
 
     gtk_init(&argc, &argv);
  
+    icon_theme = gtk_icon_theme_get_default();
+
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
     closure = g_cclosure_new(G_CALLBACK(do_quit), NULL, NULL);
