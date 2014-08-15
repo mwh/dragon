@@ -259,6 +259,8 @@ int main (int argc, char **argv) {
                     progname, argv[i]);
         }
     }
+    setvbuf(stdout, NULL, _IOLBF, BUFSIZ);
+
     GtkAccelGroup *accelgroup;
     GClosure *closure;
 
