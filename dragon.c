@@ -50,6 +50,13 @@ struct draggable_thing {
     guint last_time;
 };
 
+// MODE_ALL
+#define MAX_SIZE 100
+char** uri_collection;
+int uri_count;
+bool drag_all = false;
+// ---
+
 void add_target_button();
 
 void do_quit(GtkWidget *widget, gpointer data) {
@@ -78,7 +85,16 @@ void drag_data_get(GtkWidget    *widget,
     if (info == TARGET_TYPE_URI) {
         if (verbose)
             printf("Writing as URI: %s\n", dd->uri);
-        char *uris[] = {dd->uri, NULL};
+	
+	char** uris;
+	if(drag_all){
+	    uri_collection[uri_count] = NULL;
+	    uris = uri_collection;
+	} else {
+            char* a[] = {dd->uri, NULL};
+	    uris = a;
+	}
+
         gtk_selection_data_set_uris(data, uris);
         g_signal_stop_emission_by_name(widget, "drag-data-get");
     } else if (info == TARGET_TYPE_TEXT) {
@@ -113,6 +129,10 @@ GtkButton *add_button(char *label, struct draggable_thing *dragdata, int type) {
             G_CALLBACK(drag_end), dragdata);
  
     gtk_container_add(GTK_CONTAINER(vbox), button);
+
+    if(drag_all)
+    	uri_collection[uri_count++] = dragdata->uri;
+
     return (GtkButton *)button;
 }
 
@@ -254,6 +274,9 @@ int main (int argc, char **argv) {
         } else if (strcmp(argv[i], "-k") == 0
                 || strcmp(argv[i], "--keep") == 0) {
             keep = true;
+	} else if (strcmp(argv[i], "-a") == 0
+		|| strcmp(argv[i], "--all") == 0) {
+	    drag_all = true;
         } else if (argv[i][0] == '-') {
             fprintf(stderr, "%s: error: unknown option `%s'.\n",
                     progname, argv[i]);
@@ -299,6 +322,7 @@ int main (int argc, char **argv) {
             printf("  --and-exit, -x  exit after a single completed drop\n");
             printf("  --target,   -t  act as a target instead of source\n");
             printf("  --keep,     -k  with --target, keep files to drag out\n");
+            printf("  --all,      -a  drag all files at once\n");
             printf("  --verbose,  -v  be verbose\n");
             printf("  --help          show help\n");
             printf("  --version       show version details\n");
@@ -306,6 +330,11 @@ int main (int argc, char **argv) {
         case MODE_TARGET:
             target_mode();
             exit(0);
+    }
+
+    if(drag_all){
+       uri_collection = malloc(sizeof(char*) * (argc > MAX_SIZE? argc: MAX_SIZE));
+       uri_count = 0;
     }
 
     bool had_filename = false;
