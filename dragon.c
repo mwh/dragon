@@ -24,7 +24,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define VERSION "0.3.0"
+#define VERSION "1.0.0"
 
 
 GtkWidget *window;
@@ -260,8 +260,23 @@ int main (int argc, char **argv) {
     for (int i=1; i<argc; i++) {
         if (strcmp(argv[i], "--help") == 0) {
             mode = MODE_HELP;
+            printf("dragon - lightweight DnD source/target\n");
+            printf("Usage: %s [OPTION] [FILENAME]\n", argv[0]);
+            printf("  --and-exit, -x  exit after a single completed drop\n");
+            printf("  --target,   -t  act as a target instead of source\n");
+            printf("  --keep,     -k  with --target, keep files to drag out\n");
+            printf("  --all,      -a  drag all files at once\n");
+            printf("  --verbose,  -v  be verbose\n");
+            printf("  --help          show help\n");
+            printf("  --version       show version details\n");
+            exit(0);
         } else if (strcmp(argv[i], "--version") == 0) {
             mode = MODE_VERSION;
+            puts("dragon " VERSION);
+            puts("Copyright (C) 2014-2018 Michael Homer");
+            puts("This program comes with ABSOLUTELY NO WARRANTY.");
+            puts("See the source for copying conditions.");
+            exit(0);
         } else if (strcmp(argv[i], "-v") == 0
                 || strcmp(argv[i], "--verbose") == 0) {
             verbose = true;
@@ -309,25 +324,7 @@ int main (int argc, char **argv) {
 
     gtk_window_set_title(GTK_WINDOW(window), "dragon");
 
-    switch(mode) {
-        case MODE_VERSION:
-            puts("dragon " VERSION);
-            puts("Copyright (C) 2014 Michael Homer");
-            puts("This program comes with ABSOLUTELY NO WARRANTY.");
-            puts("See the source for copying conditions.");
-            exit(0);
-        case MODE_HELP:
-            printf("dragon - lightweight DnD source/target\n");
-            printf("Usage: %s [OPTION] [FILENAME]\n", argv[0]);
-            printf("  --and-exit, -x  exit after a single completed drop\n");
-            printf("  --target,   -t  act as a target instead of source\n");
-            printf("  --keep,     -k  with --target, keep files to drag out\n");
-            printf("  --all,      -a  drag all files at once\n");
-            printf("  --verbose,  -v  be verbose\n");
-            printf("  --help          show help\n");
-            printf("  --version       show version details\n");
-            exit(0);
-        case MODE_TARGET:
+    if (mode == MODE_TARGET) {
             target_mode();
             exit(0);
     }
