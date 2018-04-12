@@ -1,4 +1,4 @@
-PREFIX = $(HOME)/.local/bin
+PREFIX ?= $(HOME)/.local/bin
 
 all: dragon
 
