@@ -136,15 +136,18 @@ GtkButton *add_button(char *label, struct draggable_thing *dragdata, int type) {
     return (GtkButton *)button;
 }
 
-void add_file_button(char *ufilename, char *filename) {
-    char *uri = malloc(strlen(filename) + 8); // file:// + NULL
-    strcpy(uri, "file://");
-    strcat(uri, filename);
+void add_file_button(char *filename) {
+    GFile *file = g_file_new_for_path(filename);
+    if(!g_file_query_exists(file, NULL)) {
+        fprintf(stderr, "The file `%s' does not exist.\n",
+                filename);
+        exit(1);
+    }
+    char *uri = g_file_get_uri(file);
     struct draggable_thing *dragdata = malloc(sizeof(struct draggable_thing));
     dragdata->text = filename;
     dragdata->uri = uri;
-    GtkButton *button = add_button(ufilename, dragdata, TARGET_TYPE_URI);
-    GFile *file = g_file_new_for_path(filename);
+    GtkButton *button = add_button(filename, dragdata, TARGET_TYPE_URI);
     GFileInfo *fileinfo = g_file_query_info(file, "*", 0, NULL, NULL);
     GIcon *icon = g_file_info_get_icon(fileinfo);
     GtkIconInfo *icon_info = gtk_icon_theme_lookup_by_gicon(icon_theme,
@@ -256,7 +259,6 @@ void target_mode() {
 int main (int argc, char **argv) {
     progname = argv[0];
     char *filename = NULL;
-    char *ufilename = NULL;
     for (int i=1; i<argc; i++) {
         if (strcmp(argv[i], "--help") == 0) {
             mode = MODE_HELP;
@@ -337,15 +339,9 @@ int main (int argc, char **argv) {
     bool had_filename = false;
     for (int i=1; i<argc; i++) {
         if (argv[i][0] != '-') {
-            filename = ufilename = argv[i];
+            filename = argv[i];
             if (!is_uri(filename)) {
-                filename = realpath(filename, NULL);
-                if (!filename) {
-                    fprintf(stderr, "The file `%s' does not exist.\n",
-                            ufilename);
-                    exit(1);
-                }
-                add_file_button(ufilename, filename);
+                add_file_button(filename);
             } else {
                 add_uri_button(filename);
             }
