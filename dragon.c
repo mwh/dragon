@@ -151,7 +151,7 @@ void add_file_button(char *filename) {
     GFileInfo *fileinfo = g_file_query_info(file, "*", 0, NULL, NULL);
     GIcon *icon = g_file_info_get_icon(fileinfo);
     GtkIconInfo *icon_info = gtk_icon_theme_lookup_by_gicon(icon_theme,
-            icon, 48, GTK_ICON_LOOKUP_GENERIC_FALLBACK);
+            icon, 48, 0);
     gtk_button_set_image(button,
             gtk_image_new_from_pixbuf(
                 gtk_icon_info_load_icon(icon_info, NULL)
