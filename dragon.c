@@ -136,6 +136,11 @@ GtkButton *add_button(char *label, struct draggable_thing *dragdata, int type) {
     return (GtkButton *)button;
 }
 
+GtkIconInfo* icon_info_from_content_type(char *content_type) {
+    GIcon *icon = g_content_type_get_icon(content_type);
+    return gtk_icon_theme_lookup_by_gicon(icon_theme, icon, 48, 0);
+}
+
 void add_file_button(char *filename) {
     GFile *file = g_file_new_for_path(filename);
     if(!g_file_query_exists(file, NULL)) {
@@ -147,11 +152,19 @@ void add_file_button(char *filename) {
     struct draggable_thing *dragdata = malloc(sizeof(struct draggable_thing));
     dragdata->text = filename;
     dragdata->uri = uri;
+
     GtkButton *button = add_button(filename, dragdata, TARGET_TYPE_URI);
     GFileInfo *fileinfo = g_file_query_info(file, "*", 0, NULL, NULL);
     GIcon *icon = g_file_info_get_icon(fileinfo);
     GtkIconInfo *icon_info = gtk_icon_theme_lookup_by_gicon(icon_theme,
             icon, 48, 0);
+    // Try a few fallback mimetypes if no icon can be found
+    if (!icon_info)
+        icon_info = icon_info_from_content_type("application/octet-stream");
+    if (!icon_info)
+        icon_info = icon_info_from_content_type("text/x-generic");
+    if (!icon_info)
+        icon_info = icon_info_from_content_type("text/plain");
 
     if (icon_info) {
         GtkWidget *image = gtk_image_new_from_pixbuf(
