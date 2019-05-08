@@ -248,6 +248,8 @@ drag_data_received (GtkWidget          *widget,
     if (!uris && !text)
         gtk_drag_finish (context, FALSE, FALSE, time);
     if (uris) {
+        if (verbose)
+            fputs("Received URIs\n", stderr);
         gtk_container_remove(GTK_CONTAINER(vbox), widget);
         for (; *uris; uris++) {
             if (is_file_uri(*uris)) {
@@ -269,8 +271,11 @@ drag_data_received (GtkWidget          *widget,
         add_target_button();
         gtk_widget_show_all(window);
     } else if (text) {
+        if (verbose)
+            fputs("Received Text\n", stderr);
         printf("%s\n", text);
-    }
+    } else if (verbose)
+        fputs("Received nothing\n", stderr);
     gtk_drag_finish (context, TRUE, FALSE, time);
     if (and_exit)
         gtk_main_quit();
