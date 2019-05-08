@@ -107,8 +107,8 @@ void drag_data_get(GtkWidget    *widget,
 }
 
 GtkButton *add_button(char *label, struct draggable_thing *dragdata, int type) {
-    GtkWidget *button = gtk_button_new();
-    gtk_button_set_label(GTK_BUTTON(button), label);
+    GtkWidget *button = gtk_button_new_with_label(label);
+
     GtkTargetList *targetlist = gtk_drag_source_get_target_list(GTK_WIDGET(button));
     if (targetlist)
         gtk_target_list_ref(targetlist);
@@ -152,13 +152,18 @@ void add_file_button(char *filename) {
     GIcon *icon = g_file_info_get_icon(fileinfo);
     GtkIconInfo *icon_info = gtk_icon_theme_lookup_by_gicon(icon_theme,
             icon, 48, 0);
-    gtk_button_set_image(button,
-            gtk_image_new_from_pixbuf(
-                gtk_icon_info_load_icon(icon_info, NULL)
-                ));
-    gtk_button_set_alignment(button, 0, 0);
-    gtk_button_set_always_show_image(button, true);
 
+    if (icon_info) {
+        GtkWidget *image = gtk_image_new_from_pixbuf(
+                gtk_icon_info_load_icon(icon_info, NULL));
+        gtk_button_set_image(button, image);
+        gtk_button_set_always_show_image(button, true);
+    }
+
+    GList *child = g_list_first(
+            gtk_container_get_children(GTK_CONTAINER(button)));
+    if (child)
+        gtk_widget_set_halign(GTK_WIDGET(child->data), GTK_ALIGN_START);
 }
 
 void add_uri_button(char *uri) {
