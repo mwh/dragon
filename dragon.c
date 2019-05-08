@@ -36,6 +36,7 @@ bool verbose = false;
 int mode = 0;
 bool and_exit;
 bool keep;
+bool print_path = false;
 
 #define MODE_HELP 1
 #define MODE_TARGET 2
@@ -136,13 +137,20 @@ GtkButton *add_button(char *label, struct draggable_thing *dragdata, int type) {
     return (GtkButton *)button;
 }
 
+void left_align_button(GtkButton *button) {
+    GList *child = g_list_first(
+            gtk_container_get_children(GTK_CONTAINER(button)));
+    if (child)
+        gtk_widget_set_halign(GTK_WIDGET(child->data), GTK_ALIGN_START);
+}
+
 GtkIconInfo* icon_info_from_content_type(char *content_type) {
     GIcon *icon = g_content_type_get_icon(content_type);
     return gtk_icon_theme_lookup_by_gicon(icon_theme, icon, 48, 0);
 }
 
-void add_file_button(char *filename) {
-    GFile *file = g_file_new_for_path(filename);
+void add_file_button(GFile *file) {
+    char *filename = g_file_get_path(file);
     if(!g_file_query_exists(file, NULL)) {
         fprintf(stderr, "The file `%s' does not exist.\n",
                 filename);
@@ -158,6 +166,7 @@ void add_file_button(char *filename) {
     GIcon *icon = g_file_info_get_icon(fileinfo);
     GtkIconInfo *icon_info = gtk_icon_theme_lookup_by_gicon(icon_theme,
             icon, 48, 0);
+
     // Try a few fallback mimetypes if no icon can be found
     if (!icon_info)
         icon_info = icon_info_from_content_type("application/octet-stream");
@@ -173,17 +182,20 @@ void add_file_button(char *filename) {
         gtk_button_set_always_show_image(button, true);
     }
 
-    GList *child = g_list_first(
-            gtk_container_get_children(GTK_CONTAINER(button)));
-    if (child)
-        gtk_widget_set_halign(GTK_WIDGET(child->data), GTK_ALIGN_START);
+    left_align_button(button);
+}
+
+void add_filename_button(char *filename) {
+    GFile *file = g_file_new_for_path(filename);
+    add_file_button(file);
 }
 
 void add_uri_button(char *uri) {
     struct draggable_thing *dragdata = malloc(sizeof(struct draggable_thing));
     dragdata->text = uri;
     dragdata->uri = uri;
-    add_button(uri, dragdata, TARGET_TYPE_URI);
+    GtkButton *button = add_button(uri, dragdata, TARGET_TYPE_URI);
+    left_align_button(button);
 }
 
 bool is_uri(char *uri) {
@@ -193,6 +205,11 @@ bool is_uri(char *uri) {
         else if (uri[i] == ':')
             return true;
     return false;
+}
+
+bool is_file_uri(char *uri) {
+    char *prefix = "file:";
+    return strncmp(prefix, uri, strlen(prefix)) == 0;
 }
 
 gboolean drag_drop (GtkWidget *widget,
@@ -233,9 +250,21 @@ drag_data_received (GtkWidget          *widget,
     if (uris) {
         gtk_container_remove(GTK_CONTAINER(vbox), widget);
         for (; *uris; uris++) {
-            printf("%s\n", *uris);
-            if (keep)
-                add_uri_button(*uris);
+            if (is_file_uri(*uris)) {
+                GFile *file = g_file_new_for_uri(*uris);
+                if (print_path) {
+                    char *filename = g_file_get_path(file);
+                    printf("%s\n", filename);
+                } else
+                    printf("%s\n", *uris);
+                if (keep)
+                    add_file_button(file);
+
+            } else {
+                printf("%s\n", *uris);
+                if (keep)
+                    add_uri_button(*uris);
+            }
         }
         add_target_button();
         gtk_widget_show_all(window);
@@ -282,13 +311,15 @@ int main (int argc, char **argv) {
             mode = MODE_HELP;
             printf("dragon - lightweight DnD source/target\n");
             printf("Usage: %s [OPTION] [FILENAME]\n", argv[0]);
-            printf("  --and-exit, -x  exit after a single completed drop\n");
-            printf("  --target,   -t  act as a target instead of source\n");
-            printf("  --keep,     -k  with --target, keep files to drag out\n");
-            printf("  --all,      -a  drag all files at once\n");
-            printf("  --verbose,  -v  be verbose\n");
-            printf("  --help          show help\n");
-            printf("  --version       show version details\n");
+            printf("  --and-exit,   -x  exit after a single completed drop\n");
+            printf("  --target,     -t  act as a target instead of source\n");
+            printf("  --keep,       -k  with --target, keep files to drag out\n");
+            printf("  --print-path, -p  with --target, print file paths"
+                    " instead of URIs\n");
+            printf("  --all,        -a  drag all files at once\n");
+            printf("  --verbose,    -v  be verbose\n");
+            printf("  --help            show help\n");
+            printf("  --version         show version details\n");
             exit(0);
         } else if (strcmp(argv[i], "--version") == 0) {
             mode = MODE_VERSION;
@@ -309,6 +340,9 @@ int main (int argc, char **argv) {
         } else if (strcmp(argv[i], "-k") == 0
                 || strcmp(argv[i], "--keep") == 0) {
             keep = true;
+        } else if (strcmp(argv[i], "-p") == 0
+                || strcmp(argv[i], "--print-path") == 0) {
+            print_path = true;
         } else if (strcmp(argv[i], "-a") == 0
                 || strcmp(argv[i], "--all") == 0) {
             drag_all = true;
@@ -359,7 +393,10 @@ int main (int argc, char **argv) {
         if (argv[i][0] != '-') {
             filename = argv[i];
             if (!is_uri(filename)) {
-                add_file_button(filename);
+                add_filename_button(filename);
+            } else if (is_file_uri(filename)) {
+                GFile *file = g_file_new_for_uri(filename);
+                add_file_button(file);
             } else {
                 add_uri_button(filename);
             }
