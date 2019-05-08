@@ -85,15 +85,15 @@ void drag_data_get(GtkWidget    *widget,
     if (info == TARGET_TYPE_URI) {
         if (verbose)
             printf("Writing as URI: %s\n", dd->uri);
-	
-	char** uris;
-	if(drag_all){
-	    uri_collection[uri_count] = NULL;
-	    uris = uri_collection;
-	} else {
+
+        char** uris;
+        if(drag_all){
+            uri_collection[uri_count] = NULL;
+            uris = uri_collection;
+        } else {
             char* a[] = {dd->uri, NULL};
-	    uris = a;
-	}
+            uris = a;
+        }
 
         gtk_selection_data_set_uris(data, uris);
         g_signal_stop_emission_by_name(widget, "drag-data-get");
@@ -127,11 +127,11 @@ GtkButton *add_button(char *label, struct draggable_thing *dragdata, int type) {
             G_CALLBACK(button_clicked), dragdata);
     g_signal_connect(GTK_WIDGET(button), "drag-end",
             G_CALLBACK(drag_end), dragdata);
- 
+
     gtk_container_add(GTK_CONTAINER(vbox), button);
 
     if(drag_all)
-    	uri_collection[uri_count++] = dragdata->uri;
+        uri_collection[uri_count++] = dragdata->uri;
 
     return (GtkButton *)button;
 }
@@ -291,9 +291,9 @@ int main (int argc, char **argv) {
         } else if (strcmp(argv[i], "-k") == 0
                 || strcmp(argv[i], "--keep") == 0) {
             keep = true;
-	} else if (strcmp(argv[i], "-a") == 0
-		|| strcmp(argv[i], "--all") == 0) {
-	    drag_all = true;
+        } else if (strcmp(argv[i], "-a") == 0
+                || strcmp(argv[i], "--all") == 0) {
+            drag_all = true;
         } else if (argv[i][0] == '-') {
             fprintf(stderr, "%s: error: unknown option `%s'.\n",
                     progname, argv[i]);
@@ -305,7 +305,7 @@ int main (int argc, char **argv) {
     GClosure *closure;
 
     gtk_init(&argc, &argv);
- 
+
     icon_theme = gtk_icon_theme_get_default();
 
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -314,10 +314,10 @@ int main (int argc, char **argv) {
     accelgroup = gtk_accel_group_new();
     gtk_accel_group_connect(accelgroup, GDK_KEY_Escape, 0, 0, closure);
     gtk_window_add_accel_group(GTK_WINDOW(window), accelgroup);
- 
+
     gtk_window_set_title(GTK_WINDOW(window), "Run");
     gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
- 
+
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
     vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
@@ -352,10 +352,10 @@ int main (int argc, char **argv) {
         printf("Usage: %s [OPTIONS] FILENAME\n", progname);
         exit(0);
     }
- 
+
     gtk_widget_show_all(window);
- 
+
     gtk_main();
- 
+
     return 0;
 }
