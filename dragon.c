@@ -84,23 +84,27 @@ void drag_data_get(GtkWidget    *widget,
                gpointer          user_data) {
     struct draggable_thing *dd = (struct draggable_thing *)user_data;
     if (info == TARGET_TYPE_URI) {
-        if (verbose)
-            fprintf(stderr, "Writing as URI: %s\n", dd->uri);
 
         char** uris;
-        if(drag_all){
+        if (drag_all) {
             uri_collection[uri_count] = NULL;
             uris = uri_collection;
         } else {
             char* a[] = {dd->uri, NULL};
             uris = a;
         }
+        if (verbose) {
+            if (drag_all)
+                fputs("Sending all as URI\n", stderr);
+            else
+                fprintf(stderr, "Sending as URI: %s\n", dd->uri);
+        }
 
         gtk_selection_data_set_uris(data, uris);
         g_signal_stop_emission_by_name(widget, "drag-data-get");
     } else if (info == TARGET_TYPE_TEXT) {
         if (verbose)
-            fprintf(stderr, "Writing as TEXT: %s\n", dd->text);
+            fprintf(stderr, "Sending as TEXT: %s\n", dd->text);
         gtk_selection_data_set_text(data, dd->text, -1);
     } else {
         fprintf(stderr, "Error: bad target type %i\n", info);
