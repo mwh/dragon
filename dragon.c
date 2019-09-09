@@ -131,8 +131,13 @@ GtkButton *add_button(char *label, struct draggable_thing *dragdata, int type) {
 
     gtk_container_add(GTK_CONTAINER(vbox), button);
 
-    if(drag_all)
-        uri_collection[uri_count++] = dragdata->uri;
+    if (drag_all) {
+        if (uri_count < MAX_SIZE) {
+            uri_collection[uri_count++] = dragdata->uri;
+        } else {
+            fprintf(stderr, "Exceeded maximum number of files for drag_all (%d)\n", MAX_SIZE);
+        }
+    }
 
     return (GtkButton *)button;
 }
