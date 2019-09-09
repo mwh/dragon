@@ -393,8 +393,8 @@ int main (int argc, char **argv) {
             exit(0);
     }
 
-    if(drag_all){
-       uri_collection = malloc(sizeof(char*) * (argc > MAX_SIZE? argc: MAX_SIZE));
+    if (drag_all) {
+       uri_collection = malloc(sizeof(char*) * ((argc > MAX_SIZE ? argc : MAX_SIZE) + 1));
        uri_count = 0;
     }
 
