@@ -48,7 +48,6 @@ bool print_path = false;
 struct draggable_thing {
     char *text;
     char *uri;
-    guint last_time;
 };
 
 // MODE_ALL
@@ -69,11 +68,6 @@ void button_clicked(GtkWidget *widget, gpointer user_data) {
     if (0 == fork()) {
         execlp("xdg-open", "xdg-open", dd->uri, NULL);
     }
-}
-
-void drag_end(GtkWidget *widget, GdkDragContext *context, gpointer user_data) {
-    if (and_exit)
-        gtk_main_quit();
 }
 
 void drag_data_get(GtkWidget    *widget,
@@ -109,6 +103,33 @@ void drag_data_get(GtkWidget    *widget,
     } else {
         fprintf(stderr, "Error: bad target type %i\n", info);
     }
+}
+
+void drag_end(GtkWidget *widget, GdkDragContext *context, gpointer user_data) {
+    if (verbose) {
+        gboolean succeeded = gdk_drag_drop_succeeded(context);
+        GdkDragAction action = gdk_drag_context_get_selected_action (context);
+        char* action_str;
+        switch (action) {
+            case GDK_ACTION_COPY:
+                action_str = "COPY"; break;
+            case GDK_ACTION_MOVE:
+                action_str = "MOVE"; break;
+            case GDK_ACTION_LINK:
+                action_str = "LINK"; break;
+            case GDK_ACTION_ASK:
+                action_str = "ASK"; break;
+            default:
+                action_str = malloc(sizeof(char) * 20);
+                snprintf(action_str, 20, "invalid (%d)", action);
+                break;
+        }
+        fprintf(stderr, "Selected drop action: %s; Succeeded: %d\n", action_str, succeeded);
+        if (action_str[0] == 'i')
+            free(action_str);
+    }
+    if (and_exit)
+        gtk_main_quit();
 }
 
 GtkButton *add_button(char *label, struct draggable_thing *dragdata, int type) {
