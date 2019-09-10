@@ -414,8 +414,8 @@ int main (int argc, char **argv) {
     gtk_window_set_title(GTK_WINDOW(window), "dragon");
 
     if (mode == MODE_TARGET) {
-            target_mode();
-            exit(0);
+        target_mode();
+        exit(0);
     }
 
     if (drag_all) {
