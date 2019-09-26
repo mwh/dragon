@@ -144,8 +144,9 @@ GtkButton *add_button(char *label, struct draggable_thing *dragdata, int type) {
         gtk_target_list_add_uri_targets(targetlist, TARGET_TYPE_URI);
     else
         gtk_target_list_add_text_targets(targetlist, TARGET_TYPE_TEXT);
+
     gtk_drag_source_set(GTK_WIDGET(button), GDK_BUTTON1_MASK, NULL, 0,
-            GDK_ACTION_DEFAULT | GDK_ACTION_LINK | GDK_ACTION_COPY);
+            GDK_ACTION_COPY | GDK_ACTION_LINK | GDK_ACTION_ASK);
     gtk_drag_source_set_target_list(GTK_WIDGET(button), targetlist);
     g_signal_connect(GTK_WIDGET(button), "drag-data-get",
             G_CALLBACK(drag_data_get), dragdata);
