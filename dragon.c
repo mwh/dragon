@@ -53,6 +53,7 @@ struct draggable_thing {
 // MODE_ALL
 #define MAX_SIZE 100
 char** uri_collection;
+char** single_uri_data;
 int uri_count;
 bool drag_all = false;
 // ---
@@ -84,8 +85,9 @@ void drag_data_get(GtkWidget    *widget,
             uri_collection[uri_count] = NULL;
             uris = uri_collection;
         } else {
-            char* a[] = {dd->uri, NULL};
-            uris = a;
+            single_uri_data[0] = dd->uri;
+            single_uri_data[1] = NULL;
+            uris = single_uri_data;
         }
         if (verbose) {
             if (drag_all)
@@ -388,6 +390,7 @@ int main (int argc, char **argv) {
         }
     }
     setvbuf(stdout, NULL, _IOLBF, BUFSIZ);
+    single_uri_data = malloc(sizeof(char*) * 2);
 
     GtkAccelGroup *accelgroup;
     GClosure *closure;
