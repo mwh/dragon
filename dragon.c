@@ -24,7 +24,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define VERSION "1.1.0"
+#define VERSION "1.1.1"
 
 
 GtkWidget *window;
