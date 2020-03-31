@@ -37,6 +37,7 @@ int mode = 0;
 bool and_exit;
 bool keep;
 bool print_path = false;
+bool icons_only = false;
 
 #define MODE_HELP 1
 #define MODE_TARGET 2
@@ -133,7 +134,13 @@ void drag_end(GtkWidget *widget, GdkDragContext *context, gpointer user_data) {
 }
 
 GtkButton *add_button(char *label, struct draggable_thing *dragdata, int type) {
-    GtkWidget *button = gtk_button_new_with_label(label);
+    GtkWidget *button;
+
+    if (icons_only) {
+        button = gtk_button_new();
+    } else {
+        button = gtk_button_new_with_label(label);
+    }
 
     GtkTargetList *targetlist = gtk_drag_source_get_target_list(GTK_WIDGET(button));
     if (targetlist)
@@ -382,6 +389,9 @@ int main (int argc, char **argv) {
         } else if (strcmp(argv[i], "-a") == 0
                 || strcmp(argv[i], "--all") == 0) {
             drag_all = true;
+        } else if (strcmp(argv[i], "-i") == 0
+                || strcmp(argv[i], "--icon-only") == 0) {
+            icons_only = true;
         } else if (argv[i][0] == '-') {
             fprintf(stderr, "%s: error: unknown option `%s'.\n",
                     progname, argv[i]);
