@@ -221,7 +221,8 @@ void add_file_button(GFile *file) {
         gtk_button_set_always_show_image(button, true);
     }
 
-    left_align_button(button);
+    if (!icons_only)
+        left_align_button(button);
 }
 
 void add_filename_button(char *filename) {
