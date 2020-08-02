@@ -412,6 +412,8 @@ int main (int argc, char **argv) {
     closure = g_cclosure_new(G_CALLBACK(do_quit), NULL, NULL);
     accelgroup = gtk_accel_group_new();
     gtk_accel_group_connect(accelgroup, GDK_KEY_Escape, 0, 0, closure);
+    closure = g_cclosure_new(G_CALLBACK(do_quit), NULL, NULL);
+    gtk_accel_group_connect(accelgroup, GDK_KEY_q, 0, 0, closure);
     gtk_window_add_accel_group(GTK_WINDOW(window), accelgroup);
 
     gtk_window_set_title(GTK_WINDOW(window), "Run");
