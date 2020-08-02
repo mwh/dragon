@@ -401,7 +401,8 @@ int main (int argc, char **argv) {
     setvbuf(stdout, NULL, _IOLBF, BUFSIZ);
 
     GtkAccelGroup *accelgroup;
-    GClosure *closure;
+    GClosure *closure1;
+    GClosure *closure2;
 
     gtk_init(&argc, &argv);
 
@@ -409,9 +410,11 @@ int main (int argc, char **argv) {
 
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
-    closure = g_cclosure_new(G_CALLBACK(do_quit), NULL, NULL);
+    closure1 = g_cclosure_new(G_CALLBACK(do_quit), NULL, NULL);
+    closure2 = g_cclosure_new(G_CALLBACK(do_quit), NULL, NULL);
     accelgroup = gtk_accel_group_new();
-    gtk_accel_group_connect(accelgroup, GDK_KEY_Escape, 0, 0, closure);
+    gtk_accel_group_connect(accelgroup, GDK_KEY_Escape, 0, 0, closure1); 
+	gtk_accel_group_connect(accelgroup, GDK_KEY_q, 0, 0, closure2);
     gtk_window_add_accel_group(GTK_WINDOW(window), accelgroup);
 
     gtk_window_set_title(GTK_WINDOW(window), "Run");
