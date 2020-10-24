@@ -1,4 +1,4 @@
-dragon - simple drag-and-drop source/sink for X
+dragon - simple drag-and-drop source/sink for X or Wayland
 
 Many programs, particularly web applications, expect files to be dragged
 into them now. If you don't habitually use a file manager that is a
