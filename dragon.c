@@ -38,6 +38,7 @@ bool and_exit;
 bool keep;
 bool print_path = false;
 bool icons_only = false;
+bool always_on_top = false;
 
 #define MODE_HELP 1
 #define MODE_TARGET 2
@@ -361,6 +362,8 @@ int main (int argc, char **argv) {
             printf("  --print-path, -p  with --target, print file paths"
                     " instead of URIs\n");
             printf("  --all,        -a  drag all files at once\n");
+            printf("  --always,     -A  Always on top\n");
+            printf("  --not-always, -N  Not always on top\n");
             printf("  --verbose,    -v  be verbose\n");
             printf("  --help            show help\n");
             printf("  --version         show version details\n");
@@ -393,6 +396,12 @@ int main (int argc, char **argv) {
         } else if (strcmp(argv[i], "-i") == 0
                 || strcmp(argv[i], "--icon-only") == 0) {
             icons_only = true;
+        } else if (strcmp(argv[i], "-A") == 0
+                || strcmp(argv[i], "--always") == 0) {
+            always_on_top = true;
+        } else if (strcmp(argv[i], "-N") == 0
+                || strcmp(argv[i], "--not-always") == 0) {
+            always_on_top = false;
         } else if (argv[i][0] == '-') {
             fprintf(stderr, "%s: error: unknown option `%s'.\n",
                     progname, argv[i]);
@@ -418,6 +427,7 @@ int main (int argc, char **argv) {
 
     gtk_window_set_title(GTK_WINDOW(window), "Run");
     gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
+    gtk_window_set_keep_above(GTK_WINDOW(window), always_on_top);
 
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
