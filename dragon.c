@@ -362,8 +362,7 @@ int main (int argc, char **argv) {
             printf("  --print-path, -p  with --target, print file paths"
                     " instead of URIs\n");
             printf("  --all,        -a  drag all files at once\n");
-            printf("  --always,     -A  Always on top\n");
-            printf("  --not-always, -N  Not always on top\n");
+            printf("  --on-top,     -T  make window always-on-top\n");
             printf("  --verbose,    -v  be verbose\n");
             printf("  --help            show help\n");
             printf("  --version         show version details\n");
@@ -396,12 +395,9 @@ int main (int argc, char **argv) {
         } else if (strcmp(argv[i], "-i") == 0
                 || strcmp(argv[i], "--icon-only") == 0) {
             icons_only = true;
-        } else if (strcmp(argv[i], "-A") == 0
-                || strcmp(argv[i], "--always") == 0) {
+        } else if (strcmp(argv[i], "-T") == 0
+                || strcmp(argv[i], "--on-top") == 0) {
             always_on_top = true;
-        } else if (strcmp(argv[i], "-N") == 0
-                || strcmp(argv[i], "--not-always") == 0) {
-            always_on_top = false;
         } else if (argv[i][0] == '-') {
             fprintf(stderr, "%s: error: unknown option `%s'.\n",
                     progname, argv[i]);
