@@ -14,19 +14,18 @@
 # Dependencies:
 
 %define sname dragon
+%define branch packages
 %define devtty "/dev/null"
 %define debug_package %{nil}
-%global _python_bytecompile_errors_terminate_build 0
 
 Summary:	   simple drag-and-drop source/sink for X or Wayland
 Name:		   dragon-drag-and-drop
 Version:	   1.1.2
 Release:	   1
 License:	   GPL-3.0
-Source0:    https://gitlab.com/bgstack15/%{sname}/-/archive/master/%{sname}-master.tar.gz
+Source0:    https://gitlab.com/bgstack15/%{sname}/-/archive/%{branch}/%{sname}-%{branch}.tar.gz
 URL:        https://github.com/mwh/dragon
 Packager:   B. Stack <bgstack15@gmail.com>
-BuildRequires: gtk3
 BuildRequires: gtk3-devel
 BuildRequires: gcc
 
@@ -38,7 +37,10 @@ this problem.
 
 %prep
 %setup -q -c %{name}
-test -d dragon && mv dragon/* . && rmdir dragon # flatten
+ls1="$( ls -1 2>/dev/null )"
+test -d "${ls1}" && { find "${ls1}" -mindepth 1 -maxdepth 1 -exec mv {} . \; ; }
+rmdir "${ls1}"
+exit 0
 
 %build
 %make_build 
