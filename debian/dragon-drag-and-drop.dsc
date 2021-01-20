@@ -6,7 +6,7 @@ Version: 1.1.2-1
 Maintainer: B. Stack <bgstack15@gmail.com>
 Homepage: https://github.com/mwh/dragon
 Standards-Version: 4.5.0
-Build-Depends: debhelper-compat (= 12)
+Build-Depends: debhelper-compat (= 12), pkg-config, libgtk-3-dev
 Files:
  00000000000000000000000000000000 1 dragon-drag-and-drop.orig.tar.gz
  00000000000000000000000000000000 1 dragon-drag-and-drop.debian.tar.xz

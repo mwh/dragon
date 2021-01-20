@@ -2,7 +2,9 @@ Source: dragon-drag-and-drop
 Section: x11
 Priority: optional
 Maintainer: B. Stack <bgstack15@gmail.com>
-Build-Depends: debhelper-compat (= 12)
+Build-Depends: debhelper-compat (= 12),
+   pkg-config,
+   libgtk-3-dev
 Standards-Version: 4.5.0
 Homepage: https://github.com/mwh/dragon
 
