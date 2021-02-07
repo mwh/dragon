@@ -1,0 +1,53 @@
+.TH DRAGON 1
+.SH NAME
+dragon \- lightweight DnD source/target
+.SH SYNOPSIS
+.B dragon
+.OP -x
+.OP -t
+.OP -k
+.OP -p
+.OP -a
+.OP -T
+.OP -v
+FILENAME
+.PP
+.B dragon
+.OP --help
+.PP
+.B dragon
+.OP --version
+.SH DESCRIPTION
+.B dragon
+is a source/sink for drag-and-drop operations. Many programs, particularly
+web applications, expect files to be dragged into them now. If you don't
+habitually use a file manager that is a problem. Dragon creates a small window
+to drag out or drop files into, instead.
+.SH OPTIONS
+.TP
+.B -x --and-exit
+exit after a single completed drop.
+.TP
+.B -t --target
+act as a target instead of source.
+.TP
+.B -k --keep
+with --target, keep files to drag out.
+.TP
+.B -p --print-path
+with --target, print file paths instead of URIs.
+.TP
+.B -a --all
+drag all files at once.
+.TP
+.B -T --on-top
+make window always-on-top.
+.TP
+.B -v --verbose
+be verbose.
+.TP
+.B --help
+show help.
+.TP
+.B --version
+show version details.
