@@ -362,6 +362,8 @@ int main (int argc, char **argv) {
             printf("  --print-path, -p  with --target, print file paths"
                     " instead of URIs\n");
             printf("  --all,        -a  drag all files at once\n");
+            printf("  --icon-only,  -i  only show icons in drag-and-drop"
+                    " windows\n");
             printf("  --on-top,     -T  make window always-on-top\n");
             printf("  --verbose,    -v  be verbose\n");
             printf("  --help            show help\n");
