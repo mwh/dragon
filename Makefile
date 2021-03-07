@@ -1,18 +1,19 @@
 PREFIX = $(HOME)/.local
 MANPREFIX = $(PREFIX)/share/man
+NAME = dragon
 
-all: dragon
+all: $(NAME)
 
-dragon: dragon.c
-	$(CC) --std=c99 -Wall $(DEFINES) dragon.c -o dragon `pkg-config --cflags gtk+-3.0` `pkg-config --libs gtk+-3.0`
+$(NAME): dragon.c
+	$(CC) --std=c99 -Wall $(DEFINES) dragon.c -o $(NAME) `pkg-config --cflags gtk+-3.0` `pkg-config --libs gtk+-3.0`
 
-install: dragon
+install: $(NAME)
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	cp -f dragon $(DESTDIR)$(PREFIX)/bin
-	chmod 755 $(DESTDIR)$(PREFIX)/bin/dragon
+	cp -f $(NAME) $(DESTDIR)$(PREFIX)/bin
+	chmod 755 $(DESTDIR)$(PREFIX)/bin/$(NAME)
 	mkdir -p $(DESTDIR)$(MANPREFIX)/man1
-	cp -f dragon.1 $(DESTDIR)$(MANPREFIX)/man1/dragon.1
-	chmod 644 $(DESTDIR)$(MANPREFIX)/man1/dragon.1
+	sed -e "s/dragon/$(NAME)/g" dragon.1 > $(DESTDIR)$(MANPREFIX)/man1/$(NAME).1
+	chmod 644 $(DESTDIR)$(MANPREFIX)/man1/$(NAME).1
 
 uninstall:
-	rm -f $(DESTDIR)$(PREFIX)/bin/dragon $(DESTDIR)$(MANPREFIX)/man1/dragon.1
+	rm -f $(DESTDIR)$(PREFIX)/bin/$(NAME) $(DESTDIR)$(MANPREFIX)/man1/$(NAME).1
