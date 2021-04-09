@@ -1,0 +1,24 @@
+#!/usr/bin/make -f
+
+DESTDIR=$(CURDIR)/debian/dragon-drag-and-drop
+PREFIX=$(DESTDIR)/usr
+BINDIR=$(PREFIX)/bin
+
+DEFINES=-g
+
+%:
+	dh $@
+
+override_dh_auto_install:
+#	The install recipe uses some incorrect values like prefix=~/.local/bin so just ignore it entirely
+	echo DESTDIR=$(DESTDIR)
+	install -m0755 -d $(PREFIX) $(BINDIR)
+#	Plus we have to customize the name for Devuan anyway
+	install -m0755 dragon $(BINDIR)/dragon-drag-and-drop
+
+override_dh_auto_build:
+	echo DEFINES=$(DEFINES)
+	dh_auto_build -- DEFINES=$(DEFINES)
+
+override_dh_auto_clean:
+	rm -f $(CURDIR)/dragon

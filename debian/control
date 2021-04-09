@@ -1,0 +1,18 @@
+Source: dragon-drag-and-drop
+Section: x11
+Priority: optional
+Maintainer: B. Stack <bgstack15@gmail.com>
+Build-Depends: debhelper-compat (= 12),
+   pkg-config,
+   libgtk-3-dev
+Standards-Version: 4.5.0
+Homepage: https://github.com/mwh/dragon
+
+Package: dragon-drag-and-drop
+Architecture: any
+Multi-Arch: foreign
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: simple drag-and-drop source/sink for X or Wayland
+ If you don't habitually use a file manager, dragging a file
+ into a web application can be a problem. Dragon solves this
+ problem by acting as a drag-and-drop source for X.

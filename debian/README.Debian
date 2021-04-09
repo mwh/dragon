@@ -1,0 +1,7 @@
+dragon-drag-and-drop for Devuan
+
+The binary is named dragon-drag-and-drop for this package to not conflict
+with dragonplayer.
+Added a manpage with help2man.
+
+ -- B. Stack <bgstack15@gmail.com>  Mon, 18 Jan 2021 11:25:38 -0500
