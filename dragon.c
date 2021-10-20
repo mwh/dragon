@@ -412,7 +412,7 @@ int main (int argc, char **argv) {
                     " windows\n");
             printf("  --on-top,     -T  make window always-on-top\n");
             printf("  --stdin,      -I  read input from stdin\n");
-            printf("  --size,       -s  set thumbnail size (default 96)\n");
+            printf("  --thumb-size, -s  set thumbnail size (default 96)\n");
             printf("  --verbose,    -v  be verbose\n");
             printf("  --help            show help\n");
             printf("  --version         show version details\n");
@@ -452,7 +452,7 @@ int main (int argc, char **argv) {
                 || strcmp(argv[i], "--stdin") == 0) {
             from_stdin = true;
         } else if (strcmp(argv[i], "-s") == 0
-                || strcmp(argv[i], "--size") == 0) {
+                || strcmp(argv[i], "--thumb-size") == 0) {
             if ((thumb_size = atoi(argv[++i])) <= 0) {
                 fprintf(stderr, "%s: error: bad argument for -s `%s'.\n",
                         progname, argv[i]);
