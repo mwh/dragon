@@ -29,6 +29,8 @@ immediately or put where you like.
 
 To install, run `make install`, which will put it into ~/.local/bin by
 default. If you want a different destination, run `make
-PREFIX=/path/here install` instead.
+PREFIX=/path/here install` instead. To choose a different executable
+name, run `make NAME=dragon-drop install`, which will generate the
+executable and man page to match the given name.
 
 dragon requires GTK+ 3 and is distributed under the GNU GPL version 3.
