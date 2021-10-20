@@ -453,9 +453,9 @@ int main (int argc, char **argv) {
             from_stdin = true;
         } else if (strcmp(argv[i], "-s") == 0
                 || strcmp(argv[i], "--thumb-size") == 0) {
-            if ((thumb_size = atoi(argv[++i])) <= 0) {
-                fprintf(stderr, "%s: error: bad argument for -s `%s'.\n",
-                        progname, argv[i]);
+            if (argv[++i] == NULL || (thumb_size = atoi(argv[i])) <= 0) {
+                fprintf(stderr, "%s: error: bad argument for %s `%s'.\n",
+                        progname, argv[i-1], argv[i]);
                 exit(1);
             }
             argv[i][0] = '\0';
