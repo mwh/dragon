@@ -254,8 +254,14 @@ bool is_uri(char *uri) {
     for (int i=0; uri[i]; i++)
         if (uri[i] == '/')
             return false;
-        else if (uri[i] == ':')
+        else if (uri[i] == ':' && i > 0)
             return true;
+        else if (!(    (uri[i] >= 'a' && uri[i] <= 'z')
+                    || (uri[i] >= 'A' && uri[i] <= 'Z')
+                    || (uri[i] >= '0' && uri[i] <= '9' && i > 0)
+                    || (i > 0 && (uri[i] == '+' || uri[i] == '.' || uri[i] == '-'))
+                  )) // RFC3986 URI scheme syntax
+            return false;
     return false;
 }
 
