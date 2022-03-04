@@ -61,7 +61,7 @@ char** uri_collection;
 int uri_count = 0;
 bool drag_all = false;
 bool all_compact = false;
-char file_num_label[9];
+char file_num_label[10];
 struct draggable_thing fake_dragdata;
 // ---
 
