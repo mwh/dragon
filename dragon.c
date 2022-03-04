@@ -60,6 +60,10 @@ struct draggable_thing {
 char** uri_collection;
 int uri_count = 0;
 bool drag_all = false;
+bool all_compact = false;
+char file_num_label[10];
+struct draggable_thing fake_dragdata;
+GtkWidget *all_button;
 // ---
 
 void add_target_button();
@@ -137,6 +141,15 @@ void drag_end(GtkWidget *widget, GdkDragContext *context, gpointer user_data) {
         gtk_main_quit();
 }
 
+void add_uri(char *uri) {
+    if (uri_count < MAX_SIZE) {
+        uri_collection[uri_count] = uri;
+        uri_count++;
+    } else {
+        fprintf(stderr, "Exceeded maximum number of files for drag_all (%d)\n", MAX_SIZE);
+    }
+}
+
 GtkButton *add_button(char *label, struct draggable_thing *dragdata, int type) {
     GtkWidget *button;
 
@@ -168,14 +181,10 @@ GtkButton *add_button(char *label, struct draggable_thing *dragdata, int type) {
 
     gtk_container_add(GTK_CONTAINER(vbox), button);
 
-    if (drag_all) {
-        if (uri_count < MAX_SIZE) {
-            uri_collection[uri_count] = dragdata->uri;
-        } else {
-            fprintf(stderr, "Exceeded maximum number of files for drag_all (%d)\n", MAX_SIZE);
-        }
-    }
-    uri_count++;
+    if (drag_all)
+      add_uri(dragdata->uri);
+    else
+      uri_count++;
 
     return (GtkButton *)button;
 }
@@ -200,6 +209,10 @@ void add_file_button(GFile *file) {
         exit(1);
     }
     char *uri = g_file_get_uri(file);
+    if (all_compact) {
+      add_uri(uri);
+      return;
+    }
     struct draggable_thing *dragdata = malloc(sizeof(struct draggable_thing));
     dragdata->text = filename;
     dragdata->uri = uri;
@@ -243,6 +256,10 @@ void add_filename_button(char *filename) {
 }
 
 void add_uri_button(char *uri) {
+    if (all_compact) {
+      add_uri(uri);
+      return;
+    }
     struct draggable_thing *dragdata = malloc(sizeof(struct draggable_thing));
     dragdata->text = uri;
     dragdata->uri = uri;
@@ -293,6 +310,11 @@ gboolean drag_drop (GtkWidget *widget,
     return true;
 }
 
+void update_all_button() {
+    sprintf(file_num_label, "%d files", uri_count);
+    gtk_button_set_label((GtkButton *)all_button, file_num_label);
+}
+
 void
 drag_data_received (GtkWidget          *widget,
                     GdkDragContext     *context,
@@ -326,6 +348,8 @@ drag_data_received (GtkWidget          *widget,
                     add_uri_button(*uris);
             }
         }
+        if (all_compact)
+            update_all_button();
         add_target_button();
         gtk_widget_show_all(window);
     } else if (text) {
@@ -399,6 +423,27 @@ static void readstdin(void) {
     }
 }
 
+void create_all_button() {
+    sprintf(file_num_label, "%d files", uri_count);
+    all_button = gtk_button_new_with_label(file_num_label);
+
+    GtkTargetList *targetlist = gtk_target_list_new(NULL, 0);
+    gtk_target_list_add_uri_targets(targetlist, TARGET_TYPE_URI);
+
+    // fake uri to avoid segfault when callback deference it
+    fake_dragdata.uri = file_num_label;
+
+    gtk_drag_source_set(GTK_WIDGET(all_button), GDK_BUTTON1_MASK, NULL, 0,
+            GDK_ACTION_COPY | GDK_ACTION_LINK | GDK_ACTION_ASK);
+    gtk_drag_source_set_target_list(GTK_WIDGET(all_button), targetlist);
+    g_signal_connect(GTK_WIDGET(all_button), "drag-data-get",
+            G_CALLBACK(drag_data_get), &fake_dragdata);
+    g_signal_connect(GTK_WIDGET(all_button), "drag-end",
+            G_CALLBACK(drag_end), &fake_dragdata);
+
+    gtk_container_add(GTK_CONTAINER(vbox), all_button);
+}
+
 int main (int argc, char **argv) {
     bool from_stdin = false;
     stdin_files = malloc(BUFSIZ * 2);
@@ -408,18 +453,20 @@ int main (int argc, char **argv) {
             mode = MODE_HELP;
             printf("dragon - lightweight DnD source/target\n");
             printf("Usage: %s [OPTION] [FILENAME]\n", argv[0]);
-            printf("  --and-exit,   -x  exit after a single completed drop\n");
-            printf("  --target,     -t  act as a target instead of source\n");
-            printf("  --keep,       -k  with --target, keep files to drag out\n");
-            printf("  --print-path, -p  with --target, print file paths"
+            printf("  --and-exit,    -x  exit after a single completed drop\n");
+            printf("  --target,      -t  act as a target instead of source\n");
+            printf("  --keep,        -k  with --target, keep files to drag out\n");
+            printf("  --print-path,  -p  with --target, print file paths"
                     " instead of URIs\n");
-            printf("  --all,        -a  drag all files at once\n");
-            printf("  --icon-only,  -i  only show icons in drag-and-drop"
+            printf("  --all,         -a  drag all files at once\n");
+            printf("  --all-compact, -A  drag all files at once, only displaying"
+                    " the number of files\n");
+            printf("  --icon-only,   -i  only show icons in drag-and-drop"
                     " windows\n");
-            printf("  --on-top,     -T  make window always-on-top\n");
-            printf("  --stdin,      -I  read input from stdin\n");
-            printf("  --thumb-size, -s  set thumbnail size (default 96)\n");
-            printf("  --verbose,    -v  be verbose\n");
+            printf("  --on-top,      -T  make window always-on-top\n");
+            printf("  --stdin,       -I  read input from stdin\n");
+            printf("  --thumb-size,  -s  set thumbnail size (default 96)\n");
+            printf("  --verbose,     -v  be verbose\n");
             printf("  --help            show help\n");
             printf("  --version         show version details\n");
             exit(0);
@@ -448,6 +495,10 @@ int main (int argc, char **argv) {
         } else if (strcmp(argv[i], "-a") == 0
                 || strcmp(argv[i], "--all") == 0) {
             drag_all = true;
+        } else if (strcmp(argv[i], "-A") == 0
+                || strcmp(argv[i], "--all-compact") == 0) {
+            drag_all = true;
+            all_compact = true;
         } else if (strcmp(argv[i], "-i") == 0
                 || strcmp(argv[i], "--icon-only") == 0) {
             icons_only = true;
@@ -500,7 +551,12 @@ int main (int argc, char **argv) {
 
     gtk_window_set_title(GTK_WINDOW(window), "dragon");
 
+    if (all_compact)
+        create_all_button();
+
     if (mode == MODE_TARGET) {
+        if (drag_all)
+            uri_collection = malloc(sizeof(char*) * (MAX_SIZE  + 1));
         target_mode();
         exit(0);
     }
@@ -521,6 +577,9 @@ int main (int argc, char **argv) {
         printf("Usage: %s [OPTIONS] FILENAME\n", progname);
         exit(0);
     }
+
+    if (all_compact)
+        update_all_button();
 
     gtk_widget_show_all(window);
 
