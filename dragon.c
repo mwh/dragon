@@ -24,7 +24,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define VERSION "1.1.1"
+#define VERSION "1.2.0"
 
 
 GtkWidget *window;
@@ -473,7 +473,7 @@ int main (int argc, char **argv) {
         } else if (strcmp(argv[i], "--version") == 0) {
             mode = MODE_VERSION;
             puts("dragon " VERSION);
-            puts("Copyright (C) 2014-2018 Michael Homer");
+            puts("Copyright (C) 2014-2022 Michael Homer and contributors");
             puts("This program comes with ABSOLUTELY NO WARRANTY.");
             puts("See the source for copying conditions.");
             exit(0);
