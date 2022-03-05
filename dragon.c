@@ -63,6 +63,7 @@ bool drag_all = false;
 bool all_compact = false;
 char file_num_label[10];
 struct draggable_thing fake_dragdata;
+GtkWidget *all_button;
 // ---
 
 void add_target_button();
@@ -201,10 +202,6 @@ GtkIconInfo* icon_info_from_content_type(char *content_type) {
 }
 
 void add_file_button(GFile *file) {
-    if (all_compact) {
-      add_uri(g_file_get_uri(file));
-      return;
-    }
     char *filename = g_file_get_path(file);
     if(!g_file_query_exists(file, NULL)) {
         fprintf(stderr, "The file `%s' does not exist.\n",
@@ -212,6 +209,10 @@ void add_file_button(GFile *file) {
         exit(1);
     }
     char *uri = g_file_get_uri(file);
+    if (all_compact) {
+      add_uri(uri);
+      return;
+    }
     struct draggable_thing *dragdata = malloc(sizeof(struct draggable_thing));
     dragdata->text = filename;
     dragdata->uri = uri;
@@ -309,6 +310,11 @@ gboolean drag_drop (GtkWidget *widget,
     return true;
 }
 
+void update_all_button() {
+    sprintf(file_num_label, "%d files", uri_count);
+    gtk_button_set_label((GtkButton *)all_button, file_num_label);
+}
+
 void
 drag_data_received (GtkWidget          *widget,
                     GdkDragContext     *context,
@@ -342,6 +348,8 @@ drag_data_received (GtkWidget          *widget,
                     add_uri_button(*uris);
             }
         }
+        if (all_compact)
+            update_all_button();
         add_target_button();
         gtk_widget_show_all(window);
     } else if (text) {
@@ -415,10 +423,9 @@ static void readstdin(void) {
     }
 }
 
-void all_button() {
-    GtkWidget *button;
+void create_all_button() {
     sprintf(file_num_label, "%d files", uri_count);
-    button = gtk_button_new_with_label(file_num_label);
+    all_button = gtk_button_new_with_label(file_num_label);
 
     GtkTargetList *targetlist = gtk_target_list_new(NULL, 0);
     gtk_target_list_add_uri_targets(targetlist, TARGET_TYPE_URI);
@@ -426,15 +433,15 @@ void all_button() {
     // fake uri to avoid segfault when callback deference it
     fake_dragdata.uri = file_num_label;
 
-    gtk_drag_source_set(GTK_WIDGET(button), GDK_BUTTON1_MASK, NULL, 0,
+    gtk_drag_source_set(GTK_WIDGET(all_button), GDK_BUTTON1_MASK, NULL, 0,
             GDK_ACTION_COPY | GDK_ACTION_LINK | GDK_ACTION_ASK);
-    gtk_drag_source_set_target_list(GTK_WIDGET(button), targetlist);
-    g_signal_connect(GTK_WIDGET(button), "drag-data-get",
+    gtk_drag_source_set_target_list(GTK_WIDGET(all_button), targetlist);
+    g_signal_connect(GTK_WIDGET(all_button), "drag-data-get",
             G_CALLBACK(drag_data_get), &fake_dragdata);
-    g_signal_connect(GTK_WIDGET(button), "drag-end",
+    g_signal_connect(GTK_WIDGET(all_button), "drag-end",
             G_CALLBACK(drag_end), &fake_dragdata);
 
-    gtk_container_add(GTK_CONTAINER(vbox), button);
+    gtk_container_add(GTK_CONTAINER(vbox), all_button);
 }
 
 int main (int argc, char **argv) {
@@ -544,7 +551,12 @@ int main (int argc, char **argv) {
 
     gtk_window_set_title(GTK_WINDOW(window), "dragon");
 
+    if (all_compact)
+        create_all_button();
+
     if (mode == MODE_TARGET) {
+        if (drag_all)
+            uri_collection = malloc(sizeof(char*) * (MAX_SIZE  + 1));
         target_mode();
         exit(0);
     }
@@ -567,7 +579,7 @@ int main (int argc, char **argv) {
     }
 
     if (all_compact)
-        all_button();
+        update_all_button();
 
     gtk_widget_show_all(window);
 
