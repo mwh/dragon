@@ -2,10 +2,13 @@ PREFIX = $(HOME)/.local
 MANPREFIX = $(PREFIX)/share/man
 NAME = dragon
 
+GTK_CFLAGS = `pkg-config --cflags gtk+-3.0`
+GTK_LDLIBS = `pkg-config --libs gtk+-3.0`
+
 all: $(NAME)
 
 $(NAME): dragon.c Makefile
-	$(CC) --std=c99 -Wall $(DEFINES) dragon.c -o $(NAME) `pkg-config --cflags gtk+-3.0` `pkg-config --libs gtk+-3.0`
+	$(CC) --std=c99 -Wall $(DEFINES) dragon.c -o $(NAME) $(GTK_CFLAGS) $(CFLAGS) $(LDFLAGS) $(GTK_LDLIBS)
 
 install: $(NAME)
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
