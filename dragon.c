@@ -66,7 +66,7 @@ struct draggable_thing fake_dragdata;
 GtkWidget *all_button;
 // ---
 
-void add_target_button();
+void add_target_button(void);
 
 void *emalloc(size_t n) {
     void *ret = malloc(n);
@@ -318,7 +318,7 @@ gboolean drag_drop (GtkWidget *widget,
     return true;
 }
 
-void update_all_button() {
+void update_all_button(void) {
     sprintf(file_num_label, "%d files", uri_count);
     gtk_button_set_label((GtkButton *)all_button, file_num_label);
 }
@@ -371,7 +371,7 @@ drag_data_received (GtkWidget          *widget,
         gtk_main_quit();
 }
 
-void add_target_button() {
+void add_target_button(void) {
     GtkWidget *label = gtk_button_new();
     gtk_button_set_label(GTK_BUTTON(label), "Drag something here...");
     gtk_container_add(GTK_CONTAINER(vbox), label);
@@ -392,7 +392,7 @@ void add_target_button() {
             G_CALLBACK(drag_data_received), NULL);
 }
 
-void target_mode() {
+void target_mode(void) {
     add_target_button();
     gtk_widget_show_all(window);
     gtk_main();
@@ -431,7 +431,7 @@ static void readstdin(void) {
     }
 }
 
-void create_all_button() {
+void create_all_button(void) {
     sprintf(file_num_label, "%d files", uri_count);
     all_button = gtk_button_new_with_label(file_num_label);
 
