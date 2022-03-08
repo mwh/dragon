@@ -416,7 +416,7 @@ static void readstdin(void) {
             cur_size = newline - stdin_files + 1;
             if (max_size < cur_size + BUFSIZ) {
                     if (!(stdin_files = realloc(stdin_files, (max_size += BUFSIZ))))
-                            fprintf(stderr, "%s: cannot realloc %lu bytes.\n", progname, max_size);
+                            fprintf(stderr, "%s: cannot realloc %zu bytes.\n", progname, max_size);
                     newline = stdin_files + cur_size - 1;
             }
             write_pos = newline + 1;
