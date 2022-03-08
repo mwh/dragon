@@ -1,5 +1,5 @@
-// dragon - very lightweight DnD file source/target
-// Copyright 2014 Michael Homer.
+// dragon - very lightweight DnD file source/target.
+// Copyright (C) 2014-2022 Michael Homer and contributors.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -473,7 +473,7 @@ int main (int argc, char **argv) {
         } else if (strcmp(argv[i], "--version") == 0) {
             mode = MODE_VERSION;
             puts("dragon " VERSION);
-            puts("Copyright (C) 2014-2022 Michael Homer and contributors");
+            puts("Copyright (C) 2014-2022 Michael Homer and contributors.");
             puts("This program comes with ABSOLUTELY NO WARRANTY.");
             puts("See the source for copying conditions.");
             exit(0);
