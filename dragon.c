@@ -68,6 +68,15 @@ GtkWidget *all_button;
 
 void add_target_button();
 
+void *emalloc(size_t n) {
+    void *ret = malloc(n);
+    if (!ret) {
+        fprintf(stderr, "Allocation failed\n");
+        exit(1);
+    }
+    return ret;
+}
+
 void do_quit(GtkWidget *widget, gpointer data) {
     exit(0);
 }
@@ -212,7 +221,7 @@ void add_file_button(GFile *file) {
       add_uri(uri);
       return;
     }
-    struct draggable_thing *dragdata = malloc(sizeof(struct draggable_thing));
+    struct draggable_thing *dragdata = emalloc(sizeof(struct draggable_thing));
     dragdata->text = filename;
     dragdata->uri = uri;
 
@@ -259,7 +268,7 @@ void add_uri_button(char *uri) {
       add_uri(uri);
       return;
     }
-    struct draggable_thing *dragdata = malloc(sizeof(struct draggable_thing));
+    struct draggable_thing *dragdata = emalloc(sizeof(struct draggable_thing));
     dragdata->text = uri;
     dragdata->uri = uri;
     GtkButton *button = add_button(uri, dragdata, TARGET_TYPE_URI);
@@ -445,7 +454,7 @@ void create_all_button() {
 
 int main (int argc, char **argv) {
     bool from_stdin = false;
-    stdin_files = malloc(BUFSIZ * 2);
+    stdin_files = emalloc(BUFSIZ * 2);
     progname = argv[0];
     for (int i=1; i<argc; i++) {
         if (strcmp(argv[i], "--help") == 0) {
@@ -555,15 +564,15 @@ int main (int argc, char **argv) {
 
     if (mode == MODE_TARGET) {
         if (drag_all)
-            uri_collection = malloc(sizeof(char*) * (MAX_SIZE  + 1));
+            uri_collection = emalloc(sizeof(char*) * (MAX_SIZE  + 1));
         target_mode();
         exit(0);
     }
 
     if (from_stdin)
-        uri_collection = malloc(sizeof(char*) * (MAX_SIZE  + 1));
+        uri_collection = emalloc(sizeof(char*) * (MAX_SIZE  + 1));
     else if (drag_all)
-        uri_collection = malloc(sizeof(char*) * ((argc > MAX_SIZE ? argc : MAX_SIZE) + 1));
+        uri_collection = emalloc(sizeof(char*) * ((argc > MAX_SIZE ? argc : MAX_SIZE) + 1));
 
     for (int i=1; i<argc; i++) {
         if (argv[i][0] != '-' && argv[i][0] != '\0')
