@@ -35,12 +35,12 @@ char *progname;
 bool verbose = false;
 int mode = 0;
 int thumb_size = 96;
-bool and_exit;
-bool individual_exit; // TODO docs ; man
 bool keep;
 bool print_path = false;
 bool icons_only = false;
 bool always_on_top = false;
+
+static enum { QUIT_NONE, QUIT_ALL, QUIT_ITEM } quit_mode;
 
 static char *stdin_files;
 
@@ -142,11 +142,11 @@ void drag_end(GtkWidget *widget, GdkDragContext *context, gpointer user_data) {
             free(action_str);
     }
 
-    if (and_exit){
+    if (quit_mode == QUIT_ALL){
         gtk_main_quit();
     }
 
-    if(individual_exit) {
+    if(quit_mode == QUIT_ITEM) {
         if (uri_count == 0) {
             gtk_main_quit();
             return;
@@ -412,7 +412,7 @@ drag_data_received (GtkWidget          *widget,
     } else if (verbose)
         fputs("Received nothing\n", stderr);
     gtk_drag_finish (context, TRUE, FALSE, time);
-    if (and_exit)
+    if (quit_mode == QUIT_ALL)
         gtk_main_quit();
 }
 
@@ -538,10 +538,10 @@ int main (int argc, char **argv) {
             mode = MODE_TARGET;
         } else if (strcmp(argv[i], "-x") == 0
                 || strcmp(argv[i], "--and-exit") == 0) {
-            and_exit = true;
+            quit_mode = QUIT_ALL;
         } else if (strcmp(argv[i], "-X") == 0
                 || strcmp(argv[i], "--individual-exit") == 0) {
-            individual_exit = true;
+            quit_mode = QUIT_ITEM;
         } else if (strcmp(argv[i], "-k") == 0
                 || strcmp(argv[i], "--keep") == 0) {
             keep = true;
