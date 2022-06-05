@@ -146,14 +146,14 @@ void drag_end(GtkWidget *widget, GdkDragContext *context, gpointer user_data) {
         gtk_main_quit();
     }
 
-    if(quit_mode == QUIT_ITEM) {
+    if (quit_mode == QUIT_ITEM) {
         if (uri_count == 0) {
             gtk_main_quit();
             return;
         }
 
         GtkWidget* button = find_child(vbox,dd->text);
-        if(button != NULL) {
+        if (button != NULL) {
             gtk_container_remove(GTK_CONTAINER(vbox), button);
         } else {
             fprintf(stderr, "Could not find button with label: %s",dd->text);
@@ -162,36 +162,31 @@ void drag_end(GtkWidget *widget, GdkDragContext *context, gpointer user_data) {
 }
 
 // https://stackoverflow.com/a/23497087
-  GtkWidget*
-    find_child(GtkWidget* parent, const gchar* name)
-    {
-
-        if (GTK_IS_BUTTON(parent)) {
-
-            if (g_ascii_strcasecmp(gtk_button_get_label(GTK_BUTTON(parent)), (gchar*)name) == 0) { 
-                    return parent;
-            }
+GtkWidget* find_child(GtkWidget* parent, const gchar* name) {
+    if (GTK_IS_BUTTON(parent)) {
+        if (g_ascii_strcasecmp(gtk_button_get_label(GTK_BUTTON(parent)), (gchar*)name) == 0) { 
+            return parent;
         }
-
-            if (GTK_IS_BIN(parent)) {
-                    GtkWidget *child = gtk_bin_get_child(GTK_BIN(parent));
-                    return find_child(child, name);
-            }
-
-            if (GTK_IS_CONTAINER(parent)) {
-                    GList *children = gtk_container_get_children(GTK_CONTAINER(parent));
-                    do {
-                            GtkWidget* widget = find_child(children->data, name);
-                            if (widget != NULL) {
-                                    return widget;
-                            }
-                    }
-                    while ((children = g_list_next(children)) != NULL);
-                   
-            }
-
-            return NULL;
     }
+
+    if (GTK_IS_BIN(parent)) {
+        GtkWidget *child = gtk_bin_get_child(GTK_BIN(parent));
+        return find_child(child, name);
+    }
+
+    if (GTK_IS_CONTAINER(parent)) {
+        GList *children = gtk_container_get_children(GTK_CONTAINER(parent));
+        do {
+            GtkWidget* widget = find_child(children->data, name);
+            if (widget != NULL) {
+                return widget;
+            }
+        } while ((children = g_list_next(children)) != NULL);
+           
+    }
+
+    return NULL;
+}
 
 void add_uri(char *uri) {
     if (uri_count < MAX_SIZE) {
