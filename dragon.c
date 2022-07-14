@@ -50,6 +50,9 @@ static char *stdin_files;
 #define TARGET_TYPE_TEXT 1
 #define TARGET_TYPE_URI 2
 
+char ** targets = NULL;
+int num_targets = 0;
+
 struct draggable_thing {
     char *text;
     char *uri;
@@ -322,16 +325,21 @@ drag_data_received (GtkWidget          *widget,
                     gint                y,
                     GtkSelectionData   *data,
                     guint               info,
-                    guint               time) {
+                    guint               time,
+                    gpointer           *user_data) {
     gchar **uris = gtk_selection_data_get_uris(data);
     unsigned char *text = gtk_selection_data_get_text(data);
+    char* target_name = (char*) user_data;
+
     if (!uris && !text)
         gtk_drag_finish (context, FALSE, FALSE, time);
     if (uris) {
         if (verbose)
             fputs("Received URIs\n", stderr);
-        gtk_container_remove(GTK_CONTAINER(vbox), widget);
         for (; *uris; uris++) {
+            if (targets != NULL) {
+                printf("%s:", target_name);
+            }
             if (is_file_uri(*uris)) {
                 GFile *file = g_file_new_for_uri(*uris);
                 if (print_path) {
@@ -350,7 +358,6 @@ drag_data_received (GtkWidget          *widget,
         }
         if (all_compact)
             update_all_button();
-        add_target_button();
         gtk_widget_show_all(window);
     } else if (text) {
         if (verbose)
@@ -363,9 +370,9 @@ drag_data_received (GtkWidget          *widget,
         gtk_main_quit();
 }
 
-void add_target_button() {
+void add_target_button(char *target_text) {
     GtkWidget *label = gtk_button_new();
-    gtk_button_set_label(GTK_BUTTON(label), "Drag something here...");
+    gtk_button_set_label(GTK_BUTTON(label), target_text);
     gtk_container_add(GTK_CONTAINER(vbox), label);
     GtkTargetList *targetlist = gtk_drag_dest_get_target_list(GTK_WIDGET(label));
     if (targetlist)
@@ -381,11 +388,17 @@ void add_target_button() {
     g_signal_connect(GTK_WIDGET(label), "drag-drop",
             G_CALLBACK(drag_drop), NULL);
     g_signal_connect(GTK_WIDGET(label), "drag-data-received",
-            G_CALLBACK(drag_data_received), NULL);
+            G_CALLBACK(drag_data_received), target_text);
 }
 
 void target_mode() {
-    add_target_button();
+    if (targets == NULL) {
+        add_target_button("Drop something here");
+    } else {
+        for (int i = 0; i < num_targets; i++) {
+            add_target_button(targets[i]);
+        }
+    }
     gtk_widget_show_all(window);
     gtk_main();
 }
@@ -466,6 +479,7 @@ int main (int argc, char **argv) {
             printf("  --on-top,      -T  make window always-on-top\n");
             printf("  --stdin,       -I  read input from stdin\n");
             printf("  --thumb-size,  -s  set thumbnail size (default 96)\n");
+            printf("  --targets,         set (multiple) different targets");
             printf("  --verbose,     -v  be verbose\n");
             printf("  --help            show help\n");
             printf("  --version         show version details\n");
@@ -508,6 +522,18 @@ int main (int argc, char **argv) {
         } else if (strcmp(argv[i], "-I") == 0
                 || strcmp(argv[i], "--stdin") == 0) {
             from_stdin = true;
+        } else if (strcmp(argv[i], "--targets") == 0) {
+            mode = MODE_TARGET;
+            targets = &argv[i+1];
+            while (argv[i+1] != NULL && strncmp(argv[i+1], "-", 1) != 0) {
+                num_targets++;
+                i++;
+            }
+            if (num_targets == 0) {
+                fprintf(stderr, "%s: error: --targets requires at least one target name.\n",
+                        progname);
+                exit(1);
+            }
         } else if (strcmp(argv[i], "-s") == 0
                 || strcmp(argv[i], "--thumb-size") == 0) {
             if (argv[++i] == NULL || (thumb_size = atoi(argv[i])) <= 0) {
