@@ -525,7 +525,7 @@ int main (int argc, char **argv) {
         } else if (strcmp(argv[i], "--targets") == 0) {
             mode = MODE_TARGET;
             targets = &argv[i+1];
-            while (argv[i+1] != NULL && strncmp(argv[i+1], "-", 1) != 0) {
+            while (argv[i+1] != NULL && argv[i+1][0] != '-') {
                 num_targets++;
                 i++;
             }
