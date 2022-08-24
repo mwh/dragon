@@ -452,7 +452,7 @@ int main (int argc, char **argv) {
         if (strcmp(argv[i], "--help") == 0) {
             mode = MODE_HELP;
             printf("dragon - lightweight DnD source/target\n");
-            printf("Usage: %s [OPTION] [FILENAME]\n", argv[0]);
+            printf("Usage: %s [OPTION] [FILENAME]\n", progname);
             printf("  --and-exit,    -x  exit after a single completed drop\n");
             printf("  --target,      -t  act as a target instead of source\n");
             printf("  --keep,        -k  with --target, keep files to drag out\n");
