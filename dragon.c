@@ -35,11 +35,12 @@ char *progname;
 bool verbose = false;
 int mode = 0;
 int thumb_size = 96;
-bool and_exit;
 bool keep;
 bool print_path = false;
 bool icons_only = false;
 bool always_on_top = false;
+
+static enum { QUIT_NONE, QUIT_ALL, QUIT_ITEM } quit_mode;
 
 static char *stdin_files;
 
@@ -67,6 +68,7 @@ GtkWidget *all_button;
 // ---
 
 void add_target_button();
+GtkWidget* find_child(GtkWidget* parent, const gchar* name);
 
 void do_quit(GtkWidget *widget, gpointer data) {
     exit(0);
@@ -115,6 +117,8 @@ void drag_data_get(GtkWidget    *widget,
 }
 
 void drag_end(GtkWidget *widget, GdkDragContext *context, gpointer user_data) {
+    uri_count--;
+    struct draggable_thing *dd = (struct draggable_thing *)user_data;
     if (verbose) {
         gboolean succeeded = gdk_drag_drop_succeeded(context);
         GdkDragAction action = gdk_drag_context_get_selected_action (context);
@@ -137,8 +141,51 @@ void drag_end(GtkWidget *widget, GdkDragContext *context, gpointer user_data) {
         if (action_str[0] == 'i')
             free(action_str);
     }
-    if (and_exit)
+
+    if (quit_mode == QUIT_ALL){
         gtk_main_quit();
+    }
+
+    if (quit_mode == QUIT_ITEM) {
+        if (uri_count == 0) {
+            gtk_main_quit();
+            return;
+        }
+
+        GtkWidget* button = find_child(vbox,dd->text);
+        if (button != NULL) {
+            gtk_container_remove(GTK_CONTAINER(vbox), button);
+        } else {
+            fprintf(stderr, "Could not find button with label: %s",dd->text);
+        }
+    }
+}
+
+// https://stackoverflow.com/a/23497087
+GtkWidget* find_child(GtkWidget* parent, const gchar* name) {
+    if (GTK_IS_BUTTON(parent)) {
+        if (g_ascii_strcasecmp(gtk_button_get_label(GTK_BUTTON(parent)), (gchar*)name) == 0) { 
+            return parent;
+        }
+    }
+
+    if (GTK_IS_BIN(parent)) {
+        GtkWidget *child = gtk_bin_get_child(GTK_BIN(parent));
+        return find_child(child, name);
+    }
+
+    if (GTK_IS_CONTAINER(parent)) {
+        GList *children = gtk_container_get_children(GTK_CONTAINER(parent));
+        do {
+            GtkWidget* widget = find_child(children->data, name);
+            if (widget != NULL) {
+                return widget;
+            }
+        } while ((children = g_list_next(children)) != NULL);
+           
+    }
+
+    return NULL;
 }
 
 void add_uri(char *uri) {
@@ -151,6 +198,7 @@ void add_uri(char *uri) {
 }
 
 GtkButton *add_button(char *label, struct draggable_thing *dragdata, int type) {
+
     GtkWidget *button;
 
     if (icons_only) {
@@ -359,7 +407,7 @@ drag_data_received (GtkWidget          *widget,
     } else if (verbose)
         fputs("Received nothing\n", stderr);
     gtk_drag_finish (context, TRUE, FALSE, time);
-    if (and_exit)
+    if (quit_mode == QUIT_ALL)
         gtk_main_quit();
 }
 
@@ -485,7 +533,10 @@ int main (int argc, char **argv) {
             mode = MODE_TARGET;
         } else if (strcmp(argv[i], "-x") == 0
                 || strcmp(argv[i], "--and-exit") == 0) {
-            and_exit = true;
+            quit_mode = QUIT_ALL;
+        } else if (strcmp(argv[i], "-X") == 0
+                || strcmp(argv[i], "--individual-exit") == 0) {
+            quit_mode = QUIT_ITEM;
         } else if (strcmp(argv[i], "-k") == 0
                 || strcmp(argv[i], "--keep") == 0) {
             keep = true;
