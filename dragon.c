@@ -1,5 +1,5 @@
-// dragon - very lightweight DnD file source/target
-// Copyright 2014 Michael Homer.
+// dragon - very lightweight DnD file source/target.
+// Copyright (C) 2014-2022 Michael Homer and contributors.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -66,7 +66,16 @@ struct draggable_thing fake_dragdata;
 GtkWidget *all_button;
 // ---
 
-void add_target_button();
+void add_target_button(void);
+
+void *emalloc(size_t n) {
+    void *ret = malloc(n);
+    if (!ret) {
+        fprintf(stderr, "Allocation failed\n");
+        exit(1);
+    }
+    return ret;
+}
 
 void do_quit(GtkWidget *widget, gpointer data) {
     exit(0);
@@ -119,6 +128,7 @@ void drag_end(GtkWidget *widget, GdkDragContext *context, gpointer user_data) {
         gboolean succeeded = gdk_drag_drop_succeeded(context);
         GdkDragAction action = gdk_drag_context_get_selected_action (context);
         char* action_str;
+        char buf[20];
         switch (action) {
             case GDK_ACTION_COPY:
                 action_str = "COPY"; break;
@@ -129,13 +139,11 @@ void drag_end(GtkWidget *widget, GdkDragContext *context, gpointer user_data) {
             case GDK_ACTION_ASK:
                 action_str = "ASK"; break;
             default:
-                action_str = malloc(sizeof(char) * 20);
-                snprintf(action_str, 20, "invalid (%d)", action);
+                snprintf(buf, sizeof(buf), "invalid (%d)", action);
+                action_str = buf;
                 break;
         }
         fprintf(stderr, "Selected drop action: %s; Succeeded: %d\n", action_str, succeeded);
-        if (action_str[0] == 'i')
-            free(action_str);
     }
     if (and_exit)
         gtk_main_quit();
@@ -213,7 +221,7 @@ void add_file_button(GFile *file) {
       add_uri(uri);
       return;
     }
-    struct draggable_thing *dragdata = malloc(sizeof(struct draggable_thing));
+    struct draggable_thing *dragdata = emalloc(sizeof(struct draggable_thing));
     dragdata->text = filename;
     dragdata->uri = uri;
 
@@ -260,7 +268,7 @@ void add_uri_button(char *uri) {
       add_uri(uri);
       return;
     }
-    struct draggable_thing *dragdata = malloc(sizeof(struct draggable_thing));
+    struct draggable_thing *dragdata = emalloc(sizeof(struct draggable_thing));
     dragdata->text = uri;
     dragdata->uri = uri;
     GtkButton *button = add_button(uri, dragdata, TARGET_TYPE_URI);
@@ -310,7 +318,7 @@ gboolean drag_drop (GtkWidget *widget,
     return true;
 }
 
-void update_all_button() {
+void update_all_button(void) {
     sprintf(file_num_label, "%d files", uri_count);
     gtk_button_set_label((GtkButton *)all_button, file_num_label);
 }
@@ -363,7 +371,7 @@ drag_data_received (GtkWidget          *widget,
         gtk_main_quit();
 }
 
-void add_target_button() {
+void add_target_button(void) {
     GtkWidget *label = gtk_button_new();
     gtk_button_set_label(GTK_BUTTON(label), "Drag something here...");
     gtk_container_add(GTK_CONTAINER(vbox), label);
@@ -384,7 +392,7 @@ void add_target_button() {
             G_CALLBACK(drag_data_received), NULL);
 }
 
-void target_mode() {
+void target_mode(void) {
     add_target_button();
     gtk_widget_show_all(window);
     gtk_main();
@@ -416,14 +424,14 @@ static void readstdin(void) {
             cur_size = newline - stdin_files + 1;
             if (max_size < cur_size + BUFSIZ) {
                     if (!(stdin_files = realloc(stdin_files, (max_size += BUFSIZ))))
-                            fprintf(stderr, "%s: cannot realloc %lu bytes.\n", progname, max_size);
+                            fprintf(stderr, "%s: cannot realloc %zu bytes.\n", progname, max_size);
                     newline = stdin_files + cur_size - 1;
             }
             write_pos = newline + 1;
     }
 }
 
-void create_all_button() {
+void create_all_button(void) {
     sprintf(file_num_label, "%d files", uri_count);
     all_button = gtk_button_new_with_label(file_num_label);
 
@@ -446,7 +454,7 @@ void create_all_button() {
 
 int main (int argc, char **argv) {
     bool from_stdin = false;
-    stdin_files = malloc(BUFSIZ * 2);
+    stdin_files = emalloc(BUFSIZ * 2);
     progname = argv[0];
     for (int i=1; i<argc; i++) {
         if (strcmp(argv[i], "--help") == 0) {
@@ -473,7 +481,7 @@ int main (int argc, char **argv) {
         } else if (strcmp(argv[i], "--version") == 0) {
             mode = MODE_VERSION;
             puts("dragon " VERSION);
-            puts("Copyright (C) 2014-2022 Michael Homer and contributors");
+            puts("Copyright (C) 2014-2022 Michael Homer and contributors.");
             puts("This program comes with ABSOLUTELY NO WARRANTY.");
             puts("See the source for copying conditions.");
             exit(0);
@@ -556,15 +564,15 @@ int main (int argc, char **argv) {
 
     if (mode == MODE_TARGET) {
         if (drag_all)
-            uri_collection = malloc(sizeof(char*) * (MAX_SIZE  + 1));
+            uri_collection = emalloc(sizeof(char*) * (MAX_SIZE  + 1));
         target_mode();
         exit(0);
     }
 
     if (from_stdin)
-        uri_collection = malloc(sizeof(char*) * (MAX_SIZE  + 1));
+        uri_collection = emalloc(sizeof(char*) * (MAX_SIZE  + 1));
     else if (drag_all)
-        uri_collection = malloc(sizeof(char*) * ((argc > MAX_SIZE ? argc : MAX_SIZE) + 1));
+        uri_collection = emalloc(sizeof(char*) * ((argc > MAX_SIZE ? argc : MAX_SIZE) + 1));
 
     for (int i=1; i<argc; i++) {
         if (argv[i][0] != '-' && argv[i][0] != '\0')
