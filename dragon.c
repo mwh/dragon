@@ -516,6 +516,8 @@ int main (int argc, char **argv) {
                 exit(1);
             }
             argv[i][0] = '\0';
+        } else if (strcmp(argv[i], "--") == 0) { // "--" stops option processing
+            break;
         } else if (argv[i][0] == '-') {
             fprintf(stderr, "%s: error: unknown option `%s'.\n",
                     progname, argv[i]);
@@ -566,8 +568,10 @@ int main (int argc, char **argv) {
     else if (drag_all)
         uri_collection = malloc(sizeof(char*) * ((argc > MAX_SIZE ? argc : MAX_SIZE) + 1));
 
-    for (int i=1; i<argc; i++) {
-        if (argv[i][0] != '-' && argv[i][0] != '\0')
+    for (int optended=0, i=1; i<argc; i++) {
+        if (strcmp(argv[i], "--") == 0)
+            optended = 1;
+        else if (optended || (argv[i][0] != '-' && argv[i][0] != '\0'))
            make_btn(argv[i]);
     }
     if (from_stdin)
