@@ -34,3 +34,6 @@ name, run `make NAME=dragon-drop install`, which will generate the
 executable and man page to match the given name.
 
 dragon requires GTK+ 3 and is distributed under the GNU GPL version 3.
+
+![demo](https://user-images.githubusercontent.com/89579269/231829961-813379bb-33e4-49d4-9824-bfa3eea48c66.png)
+- *now take that file that showed up and just drag it anywhere you want!*
