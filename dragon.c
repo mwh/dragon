@@ -484,7 +484,7 @@ int main (int argc, char **argv) {
                     " the number of files\n");
             printf("  --icon-only,   -i  only show icons in drag-and-drop"
                     " windows\n");
-            printf("  --name-only,  -f  only show the file's basename and"
+            printf("  --name-only,   -f  only show the file's basename and"
                    " not the full path\n");
             printf("  --on-top,      -T  make window always-on-top\n");
             printf("  --stdin,       -I  read input from stdin\n");
