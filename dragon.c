@@ -39,6 +39,7 @@ bool and_exit;
 bool keep;
 bool print_path = false;
 bool icons_only = false;
+bool filename_only = false;
 bool always_on_top = false;
 
 static char *stdin_files;
@@ -202,7 +203,17 @@ GtkIconInfo* icon_info_from_content_type(char *content_type) {
 }
 
 void add_file_button(GFile *file) {
-    char *filename = g_file_get_path(file);
+    char *filename;
+
+    // When the filename only option is set, only the file's basename including
+    // extenion is displayed, not the entire path.
+    if (filename_only) {
+      char *path = g_file_get_path(file);
+      filename = g_path_get_basename(path);
+    } else {
+      filename = g_file_get_path(file);
+    }
+
     if(!g_file_query_exists(file, NULL)) {
         fprintf(stderr, "The file `%s' does not exist.\n",
                 filename);
@@ -463,6 +474,8 @@ int main (int argc, char **argv) {
                     " the number of files\n");
             printf("  --icon-only,   -i  only show icons in drag-and-drop"
                     " windows\n");
+            printf("  --name-only,  -f  only show the file's basename and"
+                   " not the full path\n");
             printf("  --on-top,      -T  make window always-on-top\n");
             printf("  --stdin,       -I  read input from stdin\n");
             printf("  --thumb-size,  -s  set thumbnail size (default 96)\n");
@@ -502,6 +515,9 @@ int main (int argc, char **argv) {
         } else if (strcmp(argv[i], "-i") == 0
                 || strcmp(argv[i], "--icon-only") == 0) {
             icons_only = true;
+        } else if (strcmp(argv[i], "-f") == 0
+                || strcmp(argv[i], "--name-only") == 0) {
+            filename_only = true;
         } else if (strcmp(argv[i], "-T") == 0
                 || strcmp(argv[i], "--on-top") == 0) {
             always_on_top = true;
