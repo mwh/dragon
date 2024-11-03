@@ -27,8 +27,15 @@
 #define VERSION "1.2.0"
 
 
+// Top-level window.
 GtkWidget *window;
+
+// Container providing the scrolling.
+GtkWidget *panel;
+
+// Child of panel, where all the children are added.
 GtkWidget *vbox;
+
 GtkIconTheme *icon_theme;
 
 char *progname;
@@ -551,6 +558,9 @@ int main (int argc, char **argv) {
 
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
+    // Scrolling Window
+    panel = gtk_scrolled_window_new(NULL, NULL);
+
     closure = g_cclosure_new(G_CALLBACK(do_quit), NULL, NULL);
     accelgroup = gtk_accel_group_new();
     gtk_accel_group_connect(accelgroup, GDK_KEY_Escape, 0, 0, closure);
@@ -566,7 +576,9 @@ int main (int argc, char **argv) {
 
     vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
 
-    gtk_container_add(GTK_CONTAINER(window), vbox);
+    gtk_container_add(GTK_CONTAINER(panel), vbox);
+
+    gtk_container_add(GTK_CONTAINER(window), panel);
 
     gtk_window_set_title(GTK_WINDOW(window), "dragon");
 
