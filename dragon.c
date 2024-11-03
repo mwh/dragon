@@ -160,6 +160,9 @@ GtkButton *add_button(char *label, struct draggable_thing *dragdata, int type) {
         button = gtk_button_new_with_label(label);
     }
 
+    // Show a tooltip with the filename. Should perhaps show the full path.
+    gtk_widget_set_tooltip_text(button, label);
+
     GtkTargetList *targetlist = gtk_drag_source_get_target_list(GTK_WIDGET(button));
     if (targetlist)
         gtk_target_list_ref(targetlist);
