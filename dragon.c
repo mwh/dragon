@@ -30,6 +30,7 @@
 GtkWidget *window;
 GtkWidget *vbox;
 GtkIconTheme *icon_theme;
+GFile *currentDir;
 
 char *progname;
 bool verbose = false;
@@ -39,7 +40,7 @@ bool and_exit;
 bool keep;
 bool print_path = false;
 bool icons_only = false;
-bool filename_only = false;
+int name_style = 0; // 0: relative 1: basename 2: absolute
 bool always_on_top = false;
 
 static char *stdin_files;
@@ -208,12 +209,14 @@ GtkIconInfo* icon_info_from_content_type(char *content_type) {
 void add_file_button(GFile *file) {
     char *filename;
 
+    // Default is relative path to file from ., if file is within .
+    filename = g_file_get_relative_path(currentDir, file);
     // When the filename only option is set, only the file's basename including
-    // extenion is displayed, not the entire path.
-    if (filename_only) {
+    // extension is displayed, not the entire path.
+    if (name_style == 1) {
       char *path = g_file_get_path(file);
       filename = g_path_get_basename(path);
-    } else {
+    } else if (name_style == 2 || !filename) {
       filename = g_file_get_path(file);
     }
 
@@ -520,7 +523,10 @@ int main (int argc, char **argv) {
             icons_only = true;
         } else if (strcmp(argv[i], "-f") == 0
                 || strcmp(argv[i], "--name-only") == 0) {
-            filename_only = true;
+            name_style = 1;
+        } else if (strcmp(argv[i], "-F") == 0
+                || strcmp(argv[i], "--full-path") == 0) {
+            name_style = 2;
         } else if (strcmp(argv[i], "-T") == 0
                 || strcmp(argv[i], "--on-top") == 0) {
             always_on_top = true;
@@ -569,6 +575,8 @@ int main (int argc, char **argv) {
     gtk_container_add(GTK_CONTAINER(window), vbox);
 
     gtk_window_set_title(GTK_WINDOW(window), "dragon");
+
+    currentDir = g_file_new_for_path(".");
 
     if (all_compact)
         create_all_button();
