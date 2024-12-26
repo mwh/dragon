@@ -25,7 +25,8 @@
 #include <string.h>
 
 #define VERSION "1.2.0"
-
+#define MIN_WIDTH 640
+#define MIN_HEIGHT 480
 
 // Top-level window.
 GtkWidget *window;
@@ -577,6 +578,23 @@ int main (int argc, char **argv) {
     gtk_window_set_title(GTK_WINDOW(window), "Run");
     gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
     gtk_window_set_keep_above(GTK_WINDOW(window), always_on_top);
+
+    // Set the default window size so the scroll window has place to work,
+    // as it doesn't set the size itself.
+    GdkDisplay *display = gdk_display_get_default();
+    GdkMonitor *monitor = gdk_display_get_monitor(display, 0);
+    GdkRectangle *workarea = malloc(sizeof(GdkRectangle));
+
+    gdk_monitor_get_workarea(monitor, workarea);
+
+    GdkGeometry *geometry = malloc(sizeof(GdkGeometry));
+    geometry->min_width = MIN_WIDTH;
+    geometry->min_height = MIN_HEIGHT;
+    geometry->max_width = workarea->width;
+    geometry->max_height = workarea->height;
+
+    gtk_window_set_geometry_hints(GTK_WINDOW(window), NULL, geometry, GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE);
+    gtk_window_set_default_size(GTK_WINDOW(window), workarea->width, workarea->height);
 
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
