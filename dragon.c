@@ -160,7 +160,7 @@ void add_uri(char *uri) {
     }
 }
 
-GtkButton *add_button(char *label, struct draggable_thing *dragdata, int type) {
+GtkButton *add_button(char *label, struct draggable_thing *dragdata, int type, char *tooltip) {
     GtkWidget *button;
 
     if (icons_only) {
@@ -169,8 +169,9 @@ GtkButton *add_button(char *label, struct draggable_thing *dragdata, int type) {
         button = gtk_button_new_with_label(label);
     }
 
-    // Show a tooltip with the filename. Should perhaps show the full path.
-    gtk_widget_set_tooltip_text(button, label);
+    // Show a tooltip based on `tooltip` or the button's intended label.
+    // Ideally, the value is the file's full path.
+    gtk_widget_set_tooltip_text(button, tooltip != NULL ? tooltip : label);
 
     GtkTargetList *targetlist = gtk_drag_source_get_target_list(GTK_WIDGET(button));
     if (targetlist)
@@ -246,7 +247,7 @@ void add_file_button(GFile *file) {
     dragdata->text = filename;
     dragdata->uri = uri;
 
-    GtkButton *button = add_button(filename, dragdata, TARGET_TYPE_URI);
+    GtkButton *button = add_button(filename, dragdata, TARGET_TYPE_URI, path);
     GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_size(path, thumb_size, thumb_size, NULL);
     if (pb) {
         GtkWidget *image = gtk_image_new_from_pixbuf(pb);
@@ -292,7 +293,7 @@ void add_uri_button(char *uri) {
     struct draggable_thing *dragdata = malloc(sizeof(struct draggable_thing));
     dragdata->text = uri;
     dragdata->uri = uri;
-    GtkButton *button = add_button(uri, dragdata, TARGET_TYPE_URI);
+    GtkButton *button = add_button(uri, dragdata, TARGET_TYPE_URI, NULL);
     left_align_button(button);
 }
 
