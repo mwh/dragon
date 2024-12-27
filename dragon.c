@@ -214,12 +214,16 @@ GtkIconInfo* icon_info_from_content_type(char *content_type) {
 }
 
 void add_file_button(GFile *file) {
-    char *filename;
-
     // When the filename only option is set, only the file's basename including
-    // extenion is displayed, not the entire path.
+    // extension is displayed, not the entire path. The button's label is
+    // obtained from the file argument and depending on `filename_only`, may
+    // be either the basename or the full path. However, the full path is
+    // necessary to get the pixel buffer for image as well as for the button's
+    // tooltip.
+    char *filename;
+    char *path = g_file_get_path(file);
+
     if (filename_only) {
-      char *path = g_file_get_path(file);
       filename = g_path_get_basename(path);
     } else {
       filename = g_file_get_path(file);
@@ -240,7 +244,7 @@ void add_file_button(GFile *file) {
     dragdata->uri = uri;
 
     GtkButton *button = add_button(filename, dragdata, TARGET_TYPE_URI);
-    GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_size(filename, thumb_size, thumb_size, NULL);
+    GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_size(path, thumb_size, thumb_size, NULL);
     if (pb) {
         GtkWidget *image = gtk_image_new_from_pixbuf(pb);
         gtk_button_set_always_show_image(button, true);
