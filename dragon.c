@@ -25,6 +25,9 @@
 #include <string.h>
 
 #define VERSION "1.2.0"
+
+// Provides an absolute minimum width and height.
+#define USE_GEOMETRY_HINTS false
 #define MIN_WIDTH 640
 #define MIN_HEIGHT 480
 
@@ -465,6 +468,44 @@ void create_all_button() {
     gtk_container_add(GTK_CONTAINER(vbox), all_button);
 }
 
+// Sets the minimum content width and height for the ScrolledWindow based on
+// the allocated width and height of the input container.
+void constrain_window_size(GtkWindow *window, GtkWidget *container, GtkScrolledWindow *scrolled_window) {
+    // Get the workarea of the monitor to limit the container's size.
+    GdkDisplay *display = gdk_display_get_default();
+    GdkMonitor *monitor = gdk_display_get_monitor(display, 0);
+    GdkRectangle *workarea = malloc(sizeof(GdkRectangle));
+
+    gdk_monitor_get_workarea(monitor, workarea);
+
+    // If enabled, the window's width and height will not be less than the
+    // defined values, regardless of the container's dimensions.
+#if USE_GEOMETRY_HINTS
+    GdkGeometry *geometry = malloc(sizeof(GdkGeometry));
+    geometry->min_width = MIN_WIDTH;
+    geometry->min_height = MIN_HEIGHT;
+    geometry->max_width = workarea->width;
+    geometry->max_height = workarea->height;
+
+    gtk_window_set_geometry_hints(window, NULL, geometry, GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE);
+#endif
+
+    int vbox_width = gtk_widget_get_allocated_width(container);
+    int vbox_height = gtk_widget_get_allocated_height(container);
+
+    // Placeholder until a way is found to have the window including its
+    // decorations and padding to occupy the workarea and not slightly exceed
+    // it.
+    int padded_height = workarea->height - (workarea->height * 0.05);
+    int padded_width = workarea->width - (workarea->width * 0.05);
+
+    int scroll_width = vbox_width > padded_width ? padded_width : vbox_width;
+    int scroll_height = vbox_height > padded_height ? padded_height : vbox_height;
+
+    gtk_scrolled_window_set_min_content_width((GtkScrolledWindow*)scrolled_window, scroll_width);
+    gtk_scrolled_window_set_min_content_height((GtkScrolledWindow*)scrolled_window, scroll_height);
+}
+
 int main (int argc, char **argv) {
     bool from_stdin = false;
     stdin_files = malloc(BUFSIZ * 2);
@@ -572,23 +613,6 @@ int main (int argc, char **argv) {
     gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
     gtk_window_set_keep_above(GTK_WINDOW(window), always_on_top);
 
-    // Set the default window size so the scroll window has place to work,
-    // as it doesn't set the size itself.
-    GdkDisplay *display = gdk_display_get_default();
-    GdkMonitor *monitor = gdk_display_get_monitor(display, 0);
-    GdkRectangle *workarea = malloc(sizeof(GdkRectangle));
-
-    gdk_monitor_get_workarea(monitor, workarea);
-
-    GdkGeometry *geometry = malloc(sizeof(GdkGeometry));
-    geometry->min_width = MIN_WIDTH;
-    geometry->min_height = MIN_HEIGHT;
-    geometry->max_width = workarea->width;
-    geometry->max_height = workarea->height;
-
-    gtk_window_set_geometry_hints(GTK_WINDOW(window), NULL, geometry, GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE);
-    gtk_window_set_default_size(GTK_WINDOW(window), workarea->width, workarea->height);
-
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
     vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
@@ -630,6 +654,7 @@ int main (int argc, char **argv) {
         update_all_button();
 
     gtk_widget_show_all(window);
+    constrain_window_size(GTK_WINDOW(window), vbox, (GtkScrolledWindow*)panel);
 
     gtk_main();
 
