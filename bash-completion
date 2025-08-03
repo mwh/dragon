@@ -1,9 +1,8 @@
 _dragon_completion() {
-    local cur prev opts
+    local cur prev shopts lopts
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-
     shopts=( x t k p a A i T I s v )
     lopts=( and-exit target keep print-path all all-compact icon-only
         on-top stdin thumb-size verbose help version )
