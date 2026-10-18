@@ -16,9 +16,6 @@ _dragon_completion() {
         COMPREPLY=( $(compgen -W "${shopts[*]/#/-}" -- "$cur") )
         return 0
     fi
-
-    compopt -o nospace 2>/dev/null
-    COMPREPLY=( $(compgen -f -- "$cur") )
 }
 
-complete -F _dragon_completion dragon
+complete -F _dragon_completion -o bashdefault -o default dragon
